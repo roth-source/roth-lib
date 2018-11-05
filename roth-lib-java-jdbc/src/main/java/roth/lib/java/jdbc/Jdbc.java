@@ -653,12 +653,14 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		else
 		{
 			preparedStatement = connection.prepareStatement(sql);
+			
 		}
+		preparedStatement = setValues(preparedStatement, values);
 		if(hasLogWriter() && sql != null)
 		{
 			debugSql(sql, values, preparedStatement);
 		}
-		return setValues(preparedStatement, values);
+		return preparedStatement;
 	}
 	
 	protected void debugSql(String sql, Collection<Object> values)
