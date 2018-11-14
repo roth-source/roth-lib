@@ -786,7 +786,26 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 		}
 		return preparedStatement;
+		
 	}
+	
+	public JdbcPreparedStatement setValues(String sql, JdbcPreparedStatement preparedStatement, Collection<Object> values) throws SQLException
+	{
+		if(values != null)
+		{
+			int i = 1;
+			for(Object value : values)
+			{
+				preparedStatement.setObject(i++, value);
+			}
+		}
+		if(hasLogWriter() && sql != null)
+		{
+			debugSql(sql, values, preparedStatement);
+		}
+		return preparedStatement;
+		
+	}	
 	
 	public String table(Class<?> klass)
 	{

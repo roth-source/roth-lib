@@ -2,7 +2,9 @@ package roth.lib.java.jdbc;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collection;
 
 import roth.lib.java.Callback;
@@ -662,6 +664,103 @@ public abstract class JdbcTable<T> implements SqlFactory
 		{
 			count = ((Number) object).intValue();
 		}
+		return count;
+	}
+	
+	public int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int batchSize)
+	{
+		if (insertObjects == null || insertObjects.size() == 0) {
+			return 0;
+		}
+		if (insertObjects.size() <= batchSize) {
+			return executeBulkInsert(insertObjects, connection, 0, insertObjects.size());
+		}
+		int numBatches = insertObjects.size() / batchSize;
+		int count = 0;
+		if (insertObjects.size() % batchSize > 0)
+			numBatches++;
+		for (int i = 0; i < numBatches; i++) 
+		{
+			count += executeBulkInsert(insertObjects, connection, i*batchSize, (i+1)*batchSize);
+		}
+		return count;
+	}
+
+	private int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int start, int end)
+	{
+		int[] results = null;
+		if (end > insertObjects.size()) {
+			end = insertObjects.size();
+		}
+		int count = 0;
+		List<String> generatedColumns = new List<String>();
+		try 
+		{
+			Statement statement = connection.createStatement();
+	
+			if (insertObjects.size() == 0) {
+				return 0;
+			}
+			JdbcModel model = insertObjects.get(start);
+			Insert insert = getDb().toInsert(model);
+			String sql = insert.toString();
+			generatedColumns = getDb().getGeneratedColumns(model.getClass());
+			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql, generatedColumns.toArray(new String[0]));
+			if(getDb().hasLogWriter())
+			{
+				getDb().getLogWriter().println();
+				getDb().getLogWriter().println(" Start of Execute Bulk Insert for " + this.getClass().getSimpleName());
+			}
+			JdbcModel insertObject;
+			for(int i = start; i < end; i++) 
+			{
+				insertObject = insertObjects.get(i);
+				if (insertObject.getClass().equals(model.getClass()) == false)
+				{
+					throw new JdbcException("All objects must be same for bulk insert");
+				}
+				
+				insertObject.preSave(connection);
+				insertObject.preInsert(connection);
+				
+				
+				insert = getDb().toInsert(insertObject);
+				preparedStatement = getDb().setValues(sql, preparedStatement, insert.getValues());
+				
+				preparedStatement.addBatch();
+			}
+			if(getDb().hasLogWriter())
+			{
+				getDb().getLogWriter().println();
+				getDb().getLogWriter().println(" End of Execute Bulk Insert for " + this.getClass().getSimpleName());
+			}
+			results = preparedStatement.executeBatch();
+			int k = 0;
+			JdbcResultSet resultSet = preparedStatement.getGeneratedKeys();
+			JdbcModel updatedModel;
+			for(int j = start; j < end; j++) 
+			{
+				updatedModel = insertObjects.get(j);
+				updatedModel.postInsert(connection, results[k]);
+				updatedModel.postSave(connection, results[k]);
+				updatedModel.persisted();
+				updatedModel.resetDirty();
+				if (resultSet != null && generatedColumns.size() > 0)
+				{
+					getDb().setGeneratedFields(resultSet, generatedColumns, updatedModel);
+				}
+				count += results[k];
+				k++;
+			}
+	
+			statement.close();
+			connection.close();
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
+		}
+
 		return count;
 	}
 	
