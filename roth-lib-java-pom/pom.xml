@@ -65,14 +65,14 @@
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-ssh</artifactId>
-				<version>2.9</version>
+				<version>3.2.0</version>
 			</extension>
 		</extensions>
 	</build>
 	<distributionManagement>
 		<repository>
 			<id>roth-dist</id>
-			<url>scp://root@framework.aptx.cm/opt/nginx/home/</url>
+			<url>scp://framework.aptx.cm/opt/nginx/home/</url>
 		</repository>
 	</distributionManagement>
 </project>
