@@ -1246,6 +1246,138 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		return result;
 	}
 	
+	public int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int batchSize)
+	{
+		if (insertObjects == null || insertObjects.size() == 0) {
+			return 0;
+		}
+		if (insertObjects.size() <= batchSize) {
+			return executeBulkInsert(insertObjects, connection, 0, insertObjects.size());
+		}
+		int numBatches = insertObjects.size() / batchSize;
+		int count = 0;
+		if (insertObjects.size() % batchSize > 0)
+			numBatches++;
+		for (int i = 0; i < numBatches; i++) 
+		{
+			count += executeBulkInsert(insertObjects, connection, i*batchSize, (i+1)*batchSize);
+		}
+		return count;
+	}
+
+	private int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int start, int end)
+	{
+		int[] results = null;
+		if (end > insertObjects.size()) {
+			end = insertObjects.size();
+		}
+		int count = 0;
+		List<String> generatedColumns = new List<String>();
+		try 
+		{
+			if (insertObjects.size() == 0) {
+				return 0;
+			}
+			JdbcModel model = insertObjects.get(start);
+			Insert insert = toInsert(model);
+			String sql = insert.toString();
+			generatedColumns = getGeneratedColumns(model.getClass());
+			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql, generatedColumns.toArray(new String[0]));
+			if(hasLogWriter())
+			{
+				getLogWriter().println();
+				getLogWriter().println(" Start of Execute Bulk Insert for " + this.getClass().getSimpleName());
+			}
+			JdbcModel insertObject;
+			for(int i = start; i < end; i++) 
+			{
+				insertObject = insertObjects.get(i);
+				if (insertObject.getClass().equals(model.getClass()) == false)
+				{
+					throw new JdbcException("All objects must be same for bulk insert");
+				}
+				
+				insertObject.preSave(connection);
+				insertObject.preInsert(connection);
+				
+				
+				insert = toInsert(insertObject);
+				preparedStatement = setValues(sql, preparedStatement, insert.getValues());
+				
+				preparedStatement.addBatch();
+			}
+			if(hasLogWriter())
+			{
+				getLogWriter().println();
+				getLogWriter().println(" End of Execute Bulk Insert for " + this.getClass().getSimpleName());
+			}
+			results = preparedStatement.executeBatch();
+			int k = 0;
+			JdbcResultSet resultSet = preparedStatement.getGeneratedKeys();
+			JdbcModel updatedModel;
+			for(int j = start; j < end; j++) 
+			{
+				updatedModel = insertObjects.get(j);
+				updatedModel.postInsert(connection, results[k]);
+				updatedModel.postSave(connection, results[k]);
+				updatedModel.persisted();
+				updatedModel.resetDirty();
+				if (resultSet != null && generatedColumns.size() > 0)
+				{
+					setGeneratedFields(resultSet, generatedColumns, updatedModel);
+				}
+				count += results[k];
+				k++;
+			}
+	
+			preparedStatement.close();
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
+		}
+
+		return count;
+	}
+		
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public int executeBulkInsert(JdbcConnection connection, String sql, List<? extends Object> values)
+	{
+		int count = 0;
+		try 
+		{
+			int[] results;
+			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql);
+			for (Object obj : values)
+			{
+				if (obj instanceof Collection)
+				{
+					preparedStatement = setValues(sql, preparedStatement, (Collection)obj);
+				} 
+				else
+				{
+					List<Object> c = new List<Object>();
+					c.add(obj);
+					preparedStatement = setValues(sql, preparedStatement, c);
+				}
+			
+				preparedStatement.addBatch();				
+			}
+			results = preparedStatement.executeBatch();
+			for (int r: results)
+			{
+				count += r;
+			}
+			preparedStatement.close();
+			
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
+		}
+		return count;
+	}
+	
 	public int executeUpdate(JdbcModel model)
 	{
 		Update update = toUpdate(model);
