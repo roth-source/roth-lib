@@ -4,11 +4,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import roth.lib.java.jdbc.Jdbc;
-import roth.lib.java.jdbc.JdbcConnection;
-import roth.lib.java.jdbc.JdbcException;
-import roth.lib.java.jdbc.mysql.sql.MysqlInsert;
 import roth.lib.java.jdbc.mysql.sql.MysqlSqlFactory;
-import roth.lib.java.lang.List;
 import roth.lib.java.mapper.MapperType;
 
 public class MysqlDb extends Jdbc implements MysqlDbWrapper, MysqlSqlFactory
@@ -63,35 +59,5 @@ public class MysqlDb extends Jdbc implements MysqlDbWrapper, MysqlSqlFactory
 		}
 		return deadLockExcepione;
 	}
-	
-	public boolean createTemporaryTable(JdbcConnection connection, String tableName, String fieldName) throws SQLException 
-	{
-		StringBuilder createTableSql = new StringBuilder();
-		createTableSql.append(String.format("CREATE TEMPORARY TABLE IF NOT EXISTS `%s` (`%s` VARCHAR(128) PRIMARY KEY NOT NULL);", tableName, fieldName));
-		executeUpdate(createTableSql.toString(), connection);
-		return true;
-	}
-	
-	public String createSingleColumnTemporaryTable(JdbcConnection connection, List<String> groupIntegrationIds, String tableName, String fieldName)
-	{
-		try 
-		{
-			if (createTemporaryTable(connection, tableName, fieldName)) 
-			{
-				List<String> names = new List<String>();
-				names.add(fieldName);
-				MysqlInsert mysqlInsert = new MysqlInsert();
-				mysqlInsert.setTable(tableName);
-				mysqlInsert.setNames(names);
-				executeBulkInsert(connection, mysqlInsert.getParamatersOnlySql(), groupIntegrationIds);
-
-			}
-		} catch(SQLException e)
-		{
-			throw new JdbcException(e);
-		}
-		return tableName;
-	}
-	
 	
 }
