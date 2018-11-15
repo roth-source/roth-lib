@@ -72,7 +72,7 @@ public class MysqlDb extends Jdbc implements MysqlDbWrapper, MysqlSqlFactory
 		return true;
 	}
 	
-	public String createIntegrationIdTemporaryTable(JdbcConnection connection, List<String> groupIntegrationIds, String tableName, String fieldName)
+	public String createSingleColumnTemporaryTable(JdbcConnection connection, List<String> groupIntegrationIds, String tableName, String fieldName)
 	{
 		try 
 		{
