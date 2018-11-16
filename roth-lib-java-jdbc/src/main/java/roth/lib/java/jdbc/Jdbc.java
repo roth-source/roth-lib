@@ -1267,11 +1267,10 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 
 	private int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int start, int end)
 	{
-		int[] results = null;
+		int results = 0;
 		if (end > insertObjects.size()) {
 			end = insertObjects.size();
 		}
-		int count = 0;
 		List<String> generatedColumns = new List<String>();
 		try 
 		{
@@ -1280,14 +1279,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 			JdbcModel model = insertObjects.get(start);
 			Insert insert = toInsert(model);
-			String sql = insert.toString();
-			generatedColumns = getGeneratedColumns(model.getClass());
-			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql, generatedColumns.toArray(new String[0]));
-			if(hasLogWriter())
-			{
-				getLogWriter().println();
-				getLogWriter().println(" Start of Execute Bulk Insert for " + this.getClass().getSimpleName());
-			}
+			List<List<Object>> parameters = new List<List<Object>>();
 			JdbcModel insertObject;
 			for(int i = start; i < end; i++) 
 			{
@@ -1301,33 +1293,31 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 				insertObject.preInsert(connection);
 				
 				
-				insert = toInsert(insertObject);
-				preparedStatement = setValues(sql, preparedStatement, insert.getValues());
+				parameters.add(toInsert(insertObject).getValues());
 				
-				preparedStatement.addBatch();
 			}
-			if(hasLogWriter())
+			String sql = toBulkValuesString(insert.getTable(), insert.getNames(), parameters);
+			if(hasLogWriter() && sql != null)
 			{
-				getLogWriter().println();
-				getLogWriter().println(" End of Execute Bulk Insert for " + this.getClass().getSimpleName());
+				debugSql(sql, null);
 			}
-			results = preparedStatement.executeBatch();
-			int k = 0;
+			
+			generatedColumns = getGeneratedColumns(model.getClass());
+			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql, generatedColumns.toArray(new String[0]));
+			results = preparedStatement.executeUpdate();
 			JdbcResultSet resultSet = preparedStatement.getGeneratedKeys();
 			JdbcModel updatedModel;
 			for(int j = start; j < end; j++) 
 			{
 				updatedModel = insertObjects.get(j);
-				updatedModel.postInsert(connection, results[k]);
-				updatedModel.postSave(connection, results[k]);
+				updatedModel.postInsert(connection, results);
+				updatedModel.postSave(connection, results);
 				updatedModel.persisted();
 				updatedModel.resetDirty();
 				if (resultSet != null && generatedColumns.size() > 0)
 				{
 					setGeneratedFields(resultSet, generatedColumns, updatedModel);
 				}
-				count += results[k];
-				k++;
 			}
 	
 			preparedStatement.close();
@@ -1337,8 +1327,28 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			throw new JdbcException(e);
 		}
 
-		return count;
+		return results;
 	}
+	
+	public String toBulkValuesString(String table, List<String> names, List<List<Object>> bulkValues)
+	{
+		String baseParams = "(" + Sql.param(names.size()) + ")";
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append(INSERT + Sql.tick(table) + " (" + Sql.tick(names) + ")");
+		builder.append(LF + VALUES );
+		boolean firstTime = true;
+		for (List<Object> sublist : bulkValues) 
+		{
+			if (!firstTime) {
+				builder.append(", ");
+			}
+			builder.append(LF + String.format(baseParams.replaceAll("\\?", "%s"), serializeValues(sublist)));
+			firstTime = false;
+		}
+		builder.append(END);
+		return builder.toString();		
+	}	
 		
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public int executeBulkInsert(JdbcConnection connection, String sql, List<? extends Object> values)

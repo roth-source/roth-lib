@@ -61,4 +61,13 @@ public abstract class Insert extends Values
 		return builder.toString();
 	}
 	
+	public String getTable() 
+	{
+		return table;
+	}
+	
+	public List<String> getNames()
+	{
+		return names;
+	}
 }
