@@ -1251,7 +1251,8 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		if (insertObjects == null || insertObjects.size() == 0) {
 			return 0;
 		}
-		if (insertObjects.size() <= batchSize) {
+		if (insertObjects.size() <= batchSize) 
+		{
 			return executeBulkInsert(insertObjects, connection, 0, insertObjects.size());
 		}
 		int numBatches = insertObjects.size() / batchSize;
@@ -1268,13 +1269,14 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	private int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int start, int end)
 	{
 		int results = 0;
-		if (end > insertObjects.size()) {
+		if (end > insertObjects.size()) 
+		{
 			end = insertObjects.size();
 		}
-		List<String> generatedColumns = new List<String>();
 		try 
 		{
-			if (insertObjects.size() == 0) {
+			if (insertObjects.size() == 0) 
+			{
 				return 0;
 			}
 			JdbcModel model = insertObjects.get(start);
@@ -1292,9 +1294,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 				insertObject.preSave(connection);
 				insertObject.preInsert(connection);
 				
-				
 				parameters.add(toInsert(insertObject).getValues());
-				
 			}
 			String sql = toBulkValuesString(insert.getTable(), insert.getNames(), parameters);
 			if(hasLogWriter() && sql != null)
@@ -1302,7 +1302,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 				debugSql(sql, null);
 			}
 			
-			generatedColumns = getGeneratedColumns(model.getClass());
+			List<String> generatedColumns = getGeneratedColumns(model.getClass());
 			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql, generatedColumns.toArray(new String[0]));
 			results = preparedStatement.executeUpdate();
 			JdbcResultSet resultSet = preparedStatement.getGeneratedKeys();
@@ -1340,7 +1340,8 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		boolean firstTime = true;
 		for (List<Object> sublist : bulkValues) 
 		{
-			if (!firstTime) {
+			if (!firstTime) 
+			{
 				builder.append(", ");
 			}
 			builder.append(LF + String.format(baseParams.replaceAll("\\?", "%s"), serializeValues(sublist)));
