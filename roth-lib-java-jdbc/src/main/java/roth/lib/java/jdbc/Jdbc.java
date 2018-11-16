@@ -1351,12 +1351,15 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		return builder.toString();		
 	}	
 	
-	public int executeBulkInsert(JdbcConnection connection, String table, List<String> names, List<? extends Object> values, int batchSize)
+	public int executeBulkInsert(JdbcConnection connection, String table, String fieldName, List<? extends Object> values, int batchSize)
 	{
 		if (values == null || values.size() == 0) 
 		{
 			return 0;
 		}
+		List<String> names = new List<String>();
+		names.add(fieldName);
+
 		List<List<Object>> valueArray = new List<List<Object>>();
 		for (Object s : values)
 		{
