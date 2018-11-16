@@ -1251,7 +1251,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		if (insertObjects == null || insertObjects.size() == 0) {
 			return 0;
 		}
-		if (insertObjects.size() <= batchSize) 
+		if (insertObjects.size() <= batchSize || batchSize == -1) 
 		{
 			return executeBulkInsert(insertObjects, connection, 0, insertObjects.size());
 		}
@@ -1350,35 +1350,54 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		builder.append(END);
 		return builder.toString();		
 	}	
-		
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public int executeBulkInsert(JdbcConnection connection, String sql, List<? extends Object> values)
+	
+	public int executeBulkInsert(JdbcConnection connection, String table, List<String> names, List<? extends Object> values, int batchSize)
 	{
+		if (values == null || values.size() == 0) 
+		{
+			return 0;
+		}
+		List<List<Object>> valueArray = new List<List<Object>>();
+		for (Object s : values)
+		{
+			List<Object> paramArray = new List<Object>();
+			paramArray.add(s);
+			valueArray.add(paramArray);
+		}
+		if (valueArray.size() <= batchSize || batchSize == -1) 
+		{
+			return executeBulkInsert(connection, table, names, valueArray);
+		}
+		int numBatches = valueArray.size() / batchSize;
 		int count = 0;
+		if (valueArray.size() % batchSize > 0)
+			numBatches++;
+		List<List<Object>> newList;
+		for (int i = 0; i < numBatches; i++) 
+		{
+			newList = new List<List<Object>>();
+			for (int j = i*batchSize; j < (i+1)*batchSize && j < valueArray.size(); j++)
+			{
+				newList.add(valueArray.get(j));
+			}
+			count += executeBulkInsert(connection, table, names, newList);
+		}
+		return count;
+		
+	}
+		
+	private int executeBulkInsert(JdbcConnection connection, String table, List<String> names, List<List<Object>> values)
+	{
+		int result = 0;
 		try 
 		{
-			int[] results;
+			String sql = toBulkValuesString(table, names, values);
+			if(hasLogWriter() && sql != null)
+			{
+				debugSql(sql, null);
+			}
 			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql);
-			for (Object obj : values)
-			{
-				if (obj instanceof Collection)
-				{
-					preparedStatement = setValues(sql, preparedStatement, (Collection)obj);
-				} 
-				else
-				{
-					List<Object> c = new List<Object>();
-					c.add(obj);
-					preparedStatement = setValues(sql, preparedStatement, c);
-				}
-			
-				preparedStatement.addBatch();				
-			}
-			results = preparedStatement.executeBatch();
-			for (int r: results)
-			{
-				count += r;
-			}
+			result = preparedStatement.executeUpdate();
 			preparedStatement.close();
 			
 		}
@@ -1386,7 +1405,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		{
 			throw new JdbcException(e);
 		}
-		return count;
+		return result;
 	}
 	
 	public int executeUpdate(JdbcModel model)
