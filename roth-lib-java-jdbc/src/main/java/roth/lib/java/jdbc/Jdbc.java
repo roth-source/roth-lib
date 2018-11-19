@@ -1245,6 +1245,44 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		return result;
 	}
+
+	public int executeBulkInsert(List<? extends JdbcModel> insertObjects, int batchSize)
+	{	
+		return executeBulkInsert(insertObjects, batchSize, 0);
+		
+	}
+	
+	protected int executeBulkInsert(List<? extends JdbcModel> insertObjects, int batchSize, int attempt)
+	{
+		int result = 0;
+		try(JdbcConnection connection = getConnection())
+		{
+			try
+			{
+				result = executeBulkInsert(insertObjects, connection, batchSize);
+				connection.commit();
+			}
+			catch(SQLException e)
+			{
+				connection.rollback();
+				connection.close();
+				throw e;
+			}
+		}
+		catch(SQLException e)
+		{
+			if(isDeadLockException(e) && attempt++ < getDeadLockRetries())
+			{
+				result = executeBulkInsert(insertObjects, batchSize, attempt);
+			}
+			else
+			{
+				throw new JdbcException(e);
+			}
+		}
+		return result;
+	}	
+	
 	
 	public int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int batchSize)
 	{
@@ -1350,6 +1388,43 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		builder.append(END);
 		return builder.toString();		
 	}	
+
+	public int executeBulkInsert(String table, String fieldName, List<? extends Object> values, int batchSize)
+	{
+		return executeBulkInsert(table, fieldName, values, batchSize, 0);
+	}
+	
+	
+	protected int executeBulkInsert(String table, String fieldName, List<? extends Object> values, int batchSize, int attempt)
+	{
+		int result = 0;
+		try(JdbcConnection connection = getConnection())
+		{
+			try
+			{
+				result = executeBulkInsert(connection, table, fieldName, values, batchSize);
+				connection.commit();
+			}
+			catch(SQLException e)
+			{
+				connection.rollback();
+				connection.close();
+				throw e;
+			}
+		}
+		catch(SQLException e)
+		{
+			if(isDeadLockException(e) && attempt++ < getDeadLockRetries())
+			{
+				result = executeBulkInsert(table, fieldName, values, batchSize, attempt);
+			}
+			else
+			{
+				throw new JdbcException(e);
+			}
+		}
+		return result;		
+	}
 	
 	public int executeBulkInsert(JdbcConnection connection, String table, String fieldName, List<? extends Object> values, int batchSize)
 	{
