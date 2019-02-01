@@ -55,6 +55,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	protected int maxConnections = 20;
 	protected int loginTimeout = 60;
 	protected int deadLockRetries = 3;
+	protected static final int MAX_INSERT_RETRIES = 3;
 	protected PrintWriter logWriter;
 	protected ConcurrentLinkedDeque<JdbcConnection> availableConnections = new ConcurrentLinkedDeque<JdbcConnection>();
 	protected ConcurrentLinkedDeque<JdbcConnection> usedConnections = new ConcurrentLinkedDeque<JdbcConnection>();
@@ -1222,6 +1223,9 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	protected int executeInsert(String sql, Collection<Object> values, JdbcModel model, JdbcConnection connection) throws SQLException
 	{
 		int result = 0;
+		boolean retry = true;
+		int attempt = 1;
+		
 		List<String> generatedColumns = new List<String>();
 		if(model != null)
 		{
@@ -1229,7 +1233,24 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		try(JdbcPreparedStatement preparedStatement = prepareStatement(connection, sql, values, generatedColumns))
 		{
-			result = preparedStatement.executeUpdate();
+			while(retry)
+			{
+				result = preparedStatement.executeUpdate();
+				if(result > 0)
+				{
+					retry = false;
+				}
+				else if(attempt >= MAX_INSERT_RETRIES)
+				{
+					retry = false;
+					throw new SQLException("Insert failed, no rows inserted " + sql);
+				}
+				else
+				{
+					debugSql(sql, values, preparedStatement);
+				}
+				attempt++;
+			}
 			if(model != null)
 			{
 				model.persisted();
