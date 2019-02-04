@@ -1247,7 +1247,22 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 				}
 				else
 				{
-					debugSql(sql, values, preparedStatement);
+					try
+					{
+						if(values != null && !values.isEmpty())
+						{
+							System.out.println("Retrying insert " + String.format(sql.replaceAll("\\?", "%s"), serializeValues(values)));
+						}
+						else
+						{
+							System.out.println("Retrying insert " + sql);
+						}
+						Thread.sleep(500);
+					}
+					catch(Exception ex)
+					{
+						
+					}
 				}
 				attempt++;
 			}
