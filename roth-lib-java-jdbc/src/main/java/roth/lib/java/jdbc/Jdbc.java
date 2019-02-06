@@ -1,5 +1,6 @@
 package roth.lib.java.jdbc;
 
+import java.beans.PropertyVetoException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -8,7 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Driver;
+import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -17,10 +18,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
 import javax.sql.DataSource;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import roth.lib.java.Callback;
 import roth.lib.java.Characters;
@@ -47,25 +49,26 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 {
 	protected MapperType mapperType;
 	protected MapperReflector mapperReflector;
-	protected JdbcDriver driver;
+	protected String driver;
 	protected String url;
 	protected String username;
 	protected String password;
 	protected Properties properties;
 	protected int maxConnections = 20;
+	protected int minConnections = 5;
+
 	protected int loginTimeout = 60;
 	protected int deadLockRetries = 3;
 	protected static final int MAX_INSERT_RETRIES = 3;
 	protected PrintWriter logWriter;
-	protected ConcurrentLinkedDeque<JdbcConnection> availableConnections = new ConcurrentLinkedDeque<JdbcConnection>();
-	protected ConcurrentLinkedDeque<JdbcConnection> usedConnections = new ConcurrentLinkedDeque<JdbcConnection>();
+	protected ComboPooledDataSource connectionPool = null;
+	protected Object synchObjectPool = new Object();
 	protected JdbcCloseHandler closeHandler = new JdbcCloseHandler()
 	{
 		@Override
-		public void close(JdbcConnection connection)
+		public void close(JdbcConnection connection) throws SQLException
 		{
-			usedConnections.remove(connection);
-			availableConnections.add(connection);
+			connection.connection.close();
 		}
 	};
 	
@@ -126,7 +129,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	
 	protected void init(String driver, String url, String username, String password, Properties properties)
 	{
-		this.driver = createDriver(driver);
+		this.driver = driver;
 		this.url = url;
 		this.username = username;
 		this.password = password;
@@ -144,27 +147,6 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	public MapperReflector getMapperReflector()
 	{
 		return mapperReflector;
-	}
-	
-	public JdbcDriver createDriver(String driverName)
-	{
-		try
-		{
-			Class<?> driverClass = Class.forName(driverName);
-			Object driver = driverClass.newInstance();
-			if(driver instanceof Driver)
-			{
-				return wrap((Driver) driver);
-			}
-			else
-			{
-				throw new IllegalArgumentException(driverName + " is not instance of Driver class");
-			}
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException(e);
-		}
 	}
 	
 	public void setMaxConnections(int maxConnections)
@@ -186,75 +168,41 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	@Override
 	public JdbcConnection getConnection(String username, String password) throws SQLException
 	{
-		JdbcConnection connection = getAvailableConnection();
-		if(connection == null)
+		if (connectionPool == null)
 		{
-			if(usedConnections.size() < maxConnections)
+			synchronized(synchObjectPool)
 			{
-				connection = createConnection(username, password);
-			}
-			long start = System.currentTimeMillis();
-			long timeout = loginTimeout * 1000;
-			while(connection == null && System.currentTimeMillis() - start < timeout)
-			{
-				try
+				if (connectionPool == null)
 				{
-					Thread.sleep(500);
-					connection = getAvailableConnection();
-				} 
-				catch(InterruptedException e)
-				{
-					throw new SQLException(e);
+					try
+					{
+						connectionPool = new ComboPooledDataSource();
+						connectionPool.setDriverClass( this.driver );           
+						connectionPool.setJdbcUrl( this.url );
+						connectionPool.setUser(username);                                  
+						connectionPool.setPassword(password);                                  
+						connectionPool.setMinPoolSize(this.minConnections);                                     
+						connectionPool.setAcquireIncrement(this.minConnections);
+						connectionPool.setMaxPoolSize(this.maxConnections);
+						connectionPool.setCheckoutTimeout(loginTimeout*1000);
+						connectionPool.setConnectionCustomizerClassName(JdbcConnectionCustomizer.class.getName());
+					}
+					catch(PropertyVetoException pvx)
+					{
+						throw new SQLException(pvx);
+					}
 				}
 			}
-			if(connection == null)
-			{
-				throw new SQLException(String.format("could not get connection within timeout of %d seconds", loginTimeout));
-			}
 		}
-		return connection;
-	}
-	
-	protected JdbcConnection getAvailableConnection()
-	{
-		JdbcConnection connection = null;
-		while((connection = availableConnections.poll()) != null)
+		Connection conn = connectionPool.getConnection();
+		if (conn != null)
 		{
-			try
-			{
-				if(connection.isValid(loginTimeout))
-				{
-					usedConnections.add(connection);
-					break;
-				}
-				else
-				{
-					connection.closeWrapped();
-				}
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
+			JdbcConnection jdbcConnection =  wrap(conn);
+			jdbcConnection.setCloseHandler(closeHandler);
+			jdbcConnection.setAutoCommit(false);
+			return jdbcConnection;
 		}
-		return connection;
-	}
-	
-	protected JdbcConnection createConnection(String username, String password) throws SQLException
-	{
-		if(username != null)
-		{
-			properties.put("user", username);
-		}
-		if(password != null)
-		{
-			properties.put("password", password);
-		}
-		JdbcConnection connection = wrap(driver.connect(url, properties));
-		connection.setCloseHandler(closeHandler);
-		connection.setAutoCommit(false);
-		usedConnections.add(connection);
-		return connection;
+		throw new SQLException(String.format("could not get connection within timeout of %d seconds", loginTimeout));
 	}
 	
 	@Override
@@ -1803,27 +1751,9 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	
 	public void close()
 	{
-		for(JdbcConnection dbConnection : availableConnections)
+		if(this.connectionPool != null)
 		{
-			try
-			{
-				dbConnection.connection.close();
-			}
-			catch(Exception e)
-			{
-				
-			}
-		}
-		for(JdbcConnection dbConnection : usedConnections)
-		{
-			try
-			{
-				dbConnection.connection.close();
-			}
-			catch(Exception e)
-			{
-				
-			}
+			this.connectionPool.close();
 		}
 	}
 	
