@@ -18,11 +18,11 @@ public class JdbcConnectionCustomizer implements ConnectionCustomizer
 
     public void onCheckOut( Connection c, String pdsIdt )
     { 
-    	System.out.println("ckout "  + Integer.toHexString(System.identityHashCode(c)) ); 
+    	//System.out.println("ckout "  + Integer.toHexString(System.identityHashCode(c)) ); 
     }
 
     public void onCheckIn( Connection c, String pdsIdt )
     { 
-    	System.out.println("ckin " + Integer.toHexString(System.identityHashCode(c)) ); 
+    	//System.out.println("ckin " + Integer.toHexString(System.identityHashCode(c)) ); 
     }
 }
