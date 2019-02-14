@@ -15,7 +15,10 @@ public class TableModel2 implements Serializable
 	
 	@Property(name = "value2")
 	protected String value2;
-	
+
+	@Property(name = "valueTrim", trimLength=10)
+	protected String valueTrim;
+
 	public TableModel2()
 	{
 		

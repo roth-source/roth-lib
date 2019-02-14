@@ -163,6 +163,10 @@ public class TableMapper extends Mapper
 		if(serializedValue != null)
 		{
 			serializedValue = serializedValue.replaceFirst(FORMULA_PATTERN, FORMULA_ESCAPE);
+			if(propertyReflector != null && propertyReflector.hasTrimLength() && serializedValue.length() > propertyReflector.getProperty().trimLength())
+			{
+				serializedValue = serializedValue.substring(0, propertyReflector.getProperty().trimLength());
+			}
 			if(isEscaped(serializedValue))
 			{
 				writer.write(getMapperConfig().getQualifier());
@@ -573,6 +577,14 @@ public class TableMapper extends Mapper
 										try
 										{
 											Object deserializedValue = deserializer.deserialize(value, timeZone, timeFormat, propertyReflector.getFieldClass());
+											if(deserializedValue != null && deserializedValue instanceof String && propertyReflector.hasTrimLength())
+											{
+												String tempValue = (String) deserializedValue;
+												if(tempValue.length() > propertyReflector.getProperty().trimLength())
+												{
+													deserializedValue = tempValue.substring(0, propertyReflector.getProperty().trimLength());
+												}
+											}
 											ReflectionUtil.setFieldValue(propertyReflector.getField(), model, deserializedValue);
 										}
 										catch(Exception e)

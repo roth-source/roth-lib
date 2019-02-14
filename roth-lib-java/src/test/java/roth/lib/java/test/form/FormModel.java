@@ -97,6 +97,9 @@ public class FormModel
 	
 	@Property(name = "test_string")
 	private String testString = "test";
+
+	@Property(name = "test_string_trim", trimLength=10)
+	private String testStringTrim = "testtrim10EXCESS";
 	
 	@Property(name = "test_date")
 	private Date testDate = new Date();

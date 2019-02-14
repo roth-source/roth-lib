@@ -177,13 +177,18 @@ public class FormMapper extends Mapper
 		}
 		if(serializedValue != null)
 		{
-			seperator = writeField(writer, name, serializedValue, seperator);
+			seperator = writeField(writer, name, serializedValue, seperator, propertyReflector);
 		}
 		return seperator;
 	}
 	
-	protected String writeField(Writer writer, String name, String value, String seperator) throws IOException
+	protected String writeField(Writer writer, String name, String value, String seperator, PropertyReflector propertyReflector) throws IOException
 	{
+		if(propertyReflector != null && propertyReflector.hasTrimLength() && value.length() > propertyReflector.getProperty().trimLength())
+		{
+			value = value.substring(0, propertyReflector.getProperty().trimLength());
+		}
+
 		writer.write(seperator);
 		writer.write(name);
 		writer.write(EQUAL);

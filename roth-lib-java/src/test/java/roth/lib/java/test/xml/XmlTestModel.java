@@ -119,6 +119,23 @@ public class XmlTestModel extends XmlModel
 	//protected String testString = "<test>He said, \"He's nice & smart\"</test>";
 	protected String testString;
 	
+	@Property(name = "test-string2", trimLength=25)
+	//protected String testString = "<test>He said, \"He's nice & smart\"</test>";
+	protected String testString2;
+	
+	@Property(name = "test-string-trim", trimLength=10)
+	protected String testStringTrim;
+
+	@Property(name = "test-string-trim2", trimLength=100)
+	protected String testStringTrim2;
+	
+	@Property(name = "test-string-notrim")
+	protected String testStringNoTrim;
+	
+	@Property(name = "test-string-max", maxLength=10)
+	protected String testStringmax;
+	
+	
 	@Property(name = "test-date")
 	//protected Date testDate = new Date();
 	protected Date testDate;
@@ -192,6 +209,8 @@ public class XmlTestModel extends XmlModel
 		testDouble = 1.23456789d;
 		testCharacter = 'a';
 		testString = "<test>He said, \"He's nice & smart\"</test>";
+		testString2 = "<test>He said, \"nice\"</test>";
+
 		testDate = new Date();
 		testCalendar = new GregorianCalendar();
 		testModel = new XmlSubModel();
@@ -203,6 +222,10 @@ public class XmlTestModel extends XmlModel
 		testStringMap.put("three", "value three");
 		testModelMap.put("one", new XmlSubModel());
 		testModelMap.put("two", new XmlSubModel());
+		testStringTrim = "12345678901234567890";
+		testStringTrim2 = "12345678901234567890";
+		testStringNoTrim = "12345678901234567890";
+		testStringmax = "12345678901234567890";
 	}
 	
 	@Override

@@ -184,6 +184,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						connectionPool.setMinPoolSize(this.minConnections);   
 						connectionPool.setInitialPoolSize(this.minConnections);
 						connectionPool.setAcquireIncrement(this.minConnections);
+						connectionPool.setTestConnectionOnCheckout(true);
 						connectionPool.setMaxPoolSize(this.maxConnections);
 						connectionPool.setCheckoutTimeout(loginTimeout*1000);
 						connectionPool.setConnectionCustomizerClassName(JdbcConnectionCustomizer.class.getName());
