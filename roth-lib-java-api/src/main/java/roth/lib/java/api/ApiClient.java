@@ -902,7 +902,13 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 		}
 		catch(IOException e)
 		{
+			logException(e);
 			throw new ApiException(e);
+		}
+		catch(Exception ex)
+		{
+			logException(ex);
+			throw ex;
 		}
 	}
 	
@@ -915,6 +921,12 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 	{
 		getLogWriter().println(response);
 	}
+	
+	protected void logException(Exception ex)
+	{
+		getLogWriter().println(ex.getCause().toString());
+	}
+
 	
 	protected <T extends ApiResponse> void checkError(HttpResponse<T> response)
 	{
