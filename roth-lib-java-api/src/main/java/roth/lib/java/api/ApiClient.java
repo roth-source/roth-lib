@@ -924,7 +924,7 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 	
 	protected void logException(Exception ex)
 	{
-		getLogWriter().println(ex.getCause().toString());
+		getLogWriter().println(ex.getCause() != null ? ex.getCause().toString() : ex.getMessage());
 	}
 
 	
