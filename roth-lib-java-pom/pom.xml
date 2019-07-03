@@ -2,10 +2,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>roth.lib.java</groupId>
 	<artifactId>roth-lib-java-pom</artifactId>
-	<version>2.0.0-SNAPSHOT</version>
+	<version>${global.version}</version>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<global.version>2.0.0-SNAPSHOT</global.version>
 	</properties>
 	<scm>
 		<connection>scm:git:git@github.com:roth-source/roth-lib-java.git</connection>

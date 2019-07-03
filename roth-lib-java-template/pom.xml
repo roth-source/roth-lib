@@ -4,7 +4,7 @@
 		<groupId>roth.lib.java</groupId>
 		<artifactId>roth-lib-java-pom</artifactId>
 		<relativePath>../roth-lib-java-pom</relativePath>
-		<version>2.0.0-SNAPSHOT</version>
+		<version>${global.version}</version>
 	</parent>
 	<artifactId>roth-lib-java-template</artifactId>
 	<dependencies>

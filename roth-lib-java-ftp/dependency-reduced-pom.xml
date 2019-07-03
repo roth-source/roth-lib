@@ -3,7 +3,7 @@
   <parent>
     <artifactId>roth-lib-java-pom</artifactId>
     <groupId>roth.lib.java</groupId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>${global.version}</version>
     <relativePath>../roth-lib-java-pom/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
