@@ -41,6 +41,7 @@ public interface SqlFactory
 	String EXISTS_SQL 		= EXISTS + "(\n%s\n   )";
 	String NOT_EXISTS 		= "NOT EXISTS ";
 	String NOT_EXISTS_SQL 	= NOT_EXISTS + "(\n%s\n   )";
+	String USE_INDEX		= " USE INDEX "+ "(%s)";
 	
 	String OP_EQ			= " = ?";
 	String OP_NE			= " != ?";
