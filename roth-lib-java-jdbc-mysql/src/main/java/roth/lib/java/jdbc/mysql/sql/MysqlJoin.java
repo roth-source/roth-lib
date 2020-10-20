@@ -178,6 +178,10 @@ public class MysqlJoin extends Join implements MysqlSqlFactory
 				builder.append(AS);
 				builder.append(tick(alias));
 			}
+			if(index != null)
+			{
+				builder.append(index);
+			}
 			if(indexHint != null)
 			{
 				builder.append(indexHint);

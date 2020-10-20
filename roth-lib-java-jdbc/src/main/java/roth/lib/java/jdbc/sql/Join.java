@@ -114,7 +114,7 @@ public abstract class Join extends Sql
 			}
 			if(index != null)
 			{
-				builder.append(USE_INDEX);
+				builder.append(index);
 			}
 			builder.append(ON);
 			builder.append(list(ons, AND));
