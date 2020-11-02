@@ -1,5 +1,6 @@
 package roth.lib.java.http;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.regex.Matcher;
@@ -20,6 +21,7 @@ public class HttpResponse<T> implements Characters
 	protected String body;
 	protected T entity;
 	protected InputStream input;
+	protected HttpURLConnection connection;
 	
 	public HttpResponse()
 	{
@@ -112,6 +114,7 @@ public class HttpResponse<T> implements Characters
 	public HttpResponse<T> parseStatus(HttpURLConnection connection)
 	{
 		status = new HttpStatus();
+		this.connection = connection;
 		try
 		{
 			status.parseCode(connection.getResponseCode());
@@ -177,6 +180,26 @@ public class HttpResponse<T> implements Characters
 			builder.append(NEW_LINE);
 		}
 		return builder.toString();
+	}
+	
+	public void close()
+	{
+		try
+		{
+			if(this.input != null)
+			{
+				this.input.close();
+			}
+			if (this.connection != null)
+			{
+				this.connection.disconnect();
+			}
+		}
+		catch(IOException ex)
+		{
+			System.out.println(ex.getMessage());
+			throw new HttpException(ex);
+		}
 	}
 	
 }
