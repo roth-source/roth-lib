@@ -816,7 +816,6 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 	
 	protected <T extends ApiResponse> HttpResponse<T> connectResponse(HttpUrl url, ApiRequest apiRequest, Outputter outputter, Type responseType, HttpMethod method, boolean gzip, HttpHeader...headers)
 	{
-		HttpResponse<T> response = null;
 		try
 		{
 			HttpRequest<ApiRequest> request = new HttpRequest<ApiRequest>();
@@ -873,7 +872,7 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 			{
 				inputter = getInputter(responseType);
 			}
-			response = connect(request, inputter, isDebug());
+			HttpResponse<T> response = connect(request, inputter, isDebug());
 			T apiResponse = response.getEntity();
 			if(isDebug())
 			{
@@ -910,13 +909,6 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 		{
 			logException(ex);
 			throw ex;
-		}
-		finally
-		{
-			if(response!=null)
-			{
-				response.close();
-			}
 		}
 	}
 	

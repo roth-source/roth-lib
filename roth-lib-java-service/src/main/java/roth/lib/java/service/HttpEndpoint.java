@@ -109,7 +109,6 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		HttpServiceMethod serviceMethod = null;
 		MethodReflector methodReflector = null;
 		ByteArrayInputStream rawInput = null;
-		InputStream input = null;
 		List<HttpError> errors = new List<HttpError>();
 		MimeType requestContentType = getRequestContentType(request, response);
 		MimeType responseContentType = getResponseContentType(request, response);
@@ -166,7 +165,7 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 												{
 													if(!HttpMethod.GET.equals(httpMethod))
 													{
-														input = methodReflector.isGzippedInput() ? new GZIPInputStream(request.getInputStream()) : request.getInputStream();
+														InputStream input = methodReflector.isGzippedInput() ? new GZIPInputStream(request.getInputStream()) : request.getInputStream();
 														if(service.isDebug() && methodReflector.isRawRequest())
 														{
 															rawInput = new ByteArrayInputStream(IoUtil.toBytes(input));
@@ -380,18 +379,6 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				service.debug(serviceMethod.getServiceName(), serviceMethod.getMethodName(), debugRequest, debugResponse, rawRequest);
 			}
 		}
-		if(input != null)
-		{
-			try
-			{
-				input.close();
-			}
-			catch(IOException ex)
-			{
-				System.out.println(ex.getMessage());
-			}
-		}
-
 	}
 	
 	public abstract void exception(HttpServletRequest request, HttpServletResponse response, Throwable e);
