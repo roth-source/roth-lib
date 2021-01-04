@@ -435,6 +435,66 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	}
 	
 	@SuppressWarnings("unchecked")
+	public <T> void fromDbWithPause(JdbcResultSet resultSet, Callback<T> callback, int pauseCount, long delayInMilliseconds)
+	{
+		try
+		{
+			Class<T> klass = callback.getKlass();
+			ResultSetMetaData metaData = resultSet.getMetaData();
+			EntityReflector entityReflector = getMapperReflector().getEntityReflector(klass);
+			int count = 0;
+			if(entityReflector != null)
+			{
+				while(resultSet.next())
+				{
+					T model = fromDb(resultSet, klass, metaData, entityReflector);
+					if(model != null)
+					{
+						callback.call(model);
+						count++;
+					}
+					if(count % pauseCount == 0)
+					{
+						try
+						{
+							Thread.sleep(delayInMilliseconds);
+						}
+						catch(Exception ex)
+						{
+						}
+					}
+				}
+			}
+			else
+			{
+				while(resultSet.next())
+				{
+					Object value = resultSet.getValue(1, klass);
+					if(value != null && value.getClass().isAssignableFrom(klass))
+					{
+						callback.call((T) value);
+						count++;
+						if(count % pauseCount == 0)
+						{
+							try
+							{
+								Thread.sleep(delayInMilliseconds);
+							}
+							catch(Exception ex)
+							{
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
 	public <T> void fromDb(JdbcResultSet resultSet, Callback<T> callback)
 	{
 		try
@@ -878,7 +938,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	{
 		return queryAll(select.toString(), select.getValues(), klass, connection);
 	}
-	
+
 	public <T> List<T> queryAll(String sql, Class<T> klass, JdbcConnection connection) throws SQLException
 	{
 		return queryAll(sql, (Collection<Object>) null, klass, connection);
@@ -942,7 +1002,31 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	{
 		queryAll(select.toString(), select.getValues(), callback, connection);
 	}
+
+	public <T> void queryAllWithPause(Select select, Callback<T> callback, JdbcConnection connection, int pauseCount, long delayInMilliseconds) throws SQLException
+	{
+		try(JdbcPreparedStatement preparedStatement = prepareStatement(connection, select.toString(), select.getValues()))
+		{
+			try(JdbcResultSet resultSet = preparedStatement.executeQuery())
+			{
+				fromDbWithPause(resultSet, callback, pauseCount, delayInMilliseconds);
+			}
+		}
+	}
 	
+	public <T> void queryAllWithPause(Select select, Callback<T> callback, int pauseCount, long delayInMilliseconds)
+	{
+		try(JdbcConnection connection = getConnection())
+		{
+			queryAllWithPause(select, callback, connection, pauseCount, delayInMilliseconds);
+			connection.commit();
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
+		}
+	}
+
 	public <T> void queryAll(String sql, Callback<T> callback, JdbcConnection connection) throws SQLException
 	{
 		queryAll(sql, (Collection<Object>) null, callback, connection);

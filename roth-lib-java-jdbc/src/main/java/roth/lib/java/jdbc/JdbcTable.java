@@ -481,6 +481,31 @@ public abstract class JdbcTable<T> implements SqlFactory
 		}
 	}
 	
+	public <C> void callbackWithPause(Select select, int pauseCount, long delayInMilliseconds, Callback<T> callback)
+	{
+		callbackWithPause(select, pauseCount, delayInMilliseconds, callback.setKlass(klass), klass);
+	}
+	
+	public <C> void callbackWithPause(Select select, int pauseCount, long delayInMilliseconds, Callback<C> callback, Class<C> klass)
+	{
+		JdbcConnection connection = getConnection();
+		if(connection != null)
+		{
+			try
+			{
+				getDb().queryAllWithPause(filter(select, null), callback, connection, pauseCount, delayInMilliseconds);
+			}
+			catch(SQLException e)
+			{
+				throw new JdbcException(e);
+			}
+		}
+		else
+		{
+			getDb().queryAllWithPause(filter(select, null), callback.setKlass(klass), pauseCount, delayInMilliseconds);
+		}
+	}
+	
 	public <C> void callback(String sql, Callback<C> callback, Class<C> klass)
 	{
 		JdbcConnection connection = getConnection();
