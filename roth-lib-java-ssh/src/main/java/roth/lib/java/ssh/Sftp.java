@@ -74,6 +74,35 @@ public class Sftp implements AutoCloseable
 		return lines;
 	}
 	
+	public List<SftpFile> lsWithType()
+	{
+		return lsWithType(".");
+	}
+	
+	public List<SftpFile> lsWithType(String path)
+	{
+		List<SftpFile> lines = new List<SftpFile>();
+		try
+		{
+			openChannelSftp();
+			Vector<?> vector = channelSftp.ls(path);
+			for(Object object : vector)
+			{
+				if(object instanceof LsEntry)
+				{
+					LsEntry lsE = (LsEntry) object;
+					SftpFile sfFile = new SftpFile(lsE.getFilename(), lsE.getAttrs() == null ? false : lsE.getAttrs().isDir());
+					lines.add(sfFile);
+				}
+			}
+		}
+		catch(SftpException e)
+		{
+			throw new SshException(e);
+		}
+		return lines;
+	}
+	
 	public void cd(String path)
 	{
 		try
