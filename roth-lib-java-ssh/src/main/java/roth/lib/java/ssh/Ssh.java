@@ -61,6 +61,10 @@ public class Ssh implements AutoCloseable
 					session.setPassword(config.getPassword());
 				}
 				session.setConfig(new Hashtable<String, String>(config.getConfig()));
+				if(this.config != null && this.config.getTimeout() > 0)
+				{
+					session.setTimeout(this.config.getTimeout());
+				}
 				session.connect();
 			}
 			catch(JSchException e)
