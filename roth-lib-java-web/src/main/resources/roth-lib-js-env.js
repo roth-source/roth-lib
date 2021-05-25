@@ -371,6 +371,32 @@ var checkSecure = checkSecure || function()
 	}
 };
 
+var readMobileParams = readMobileParams || function()
+{
+	if(urlParam("isMobile") === "true")
+	{
+		var session = urlParam("session");
+		var token = urlParam("csrfToken");
+		if(isSet(session) && isSet(token))
+		{
+			localStorage.setItem("session", session);
+			localStorage.setItem("csrfToken", token);
+		}
+	}
+};
+
+var urlParam = function(name){
+	var url = new URL(window.location.href);
+	var results= url.searchParams.get(name);
+	if(!isNull(results))
+	{
+		return results;
+	}
+	else
+	{
+		return false;
+	}
+};
 
 var loadCssCompiledDependencies = loadCssCompiledDependencies || function(app)
 {
