@@ -53,6 +53,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	protected String url;
 	protected String username;
 	protected String password;
+	protected String testConnectionString;
 	protected Properties properties;
 	protected int maxConnections = 20;
 	protected int minConnections = 5;
@@ -105,11 +106,18 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		this.mapperType = mapperType;
 		init(driver, url, username, password);
 	}
+
+	public Jdbc(MapperType mapperType, String driver, String url, String username, String password, String testConnectionString)
+	{
+		this.mapperType = mapperType;
+		init(driver, url, username, password, testConnectionString);
+	}
 	
+
 	public Jdbc(MapperType mapperType, String driver, String url, String username, String password, Properties properties)
 	{
 		this.mapperType = mapperType;
-		init(driver, url, username, password, properties);
+		init(driver, url, username, password, null ,properties);
 	}
 	
 	protected void init(String driver, String url)
@@ -119,21 +127,27 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	
 	protected void init(String driver, String url, Properties properties)
 	{
-		init(driver, url, null, null, properties);
+		init(driver, url, null, null, null, properties);
 	}
 	
 	protected void init(String driver, String url, String username, String password)
 	{
-		init(driver, url, username, password, new Properties());
+		init(driver, url, username, password, null, new Properties());
 	}
-	
-	protected void init(String driver, String url, String username, String password, Properties properties)
+
+	protected void init(String driver, String url, String username, String password, String testConnectionString)
+	{
+		init(driver, url, username, password, testConnectionString, new Properties());
+	}
+
+	protected void init(String driver, String url, String username, String password, String testConnectionString, Properties properties)
 	{
 		this.driver = driver;
 		this.url = url;
 		this.username = username;
 		this.password = password;
 		this.properties = properties;
+		this.testConnectionString = testConnectionString;
 		this.mapperReflector = MapperReflector.get();
 	}
 	
@@ -185,6 +199,10 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						connectionPool.setInitialPoolSize(this.minConnections);
 						connectionPool.setAcquireIncrement(this.minConnections);
 						connectionPool.setTestConnectionOnCheckout(true);
+						if(this.testConnectionString != null)
+						{
+							connectionPool.setPreferredTestQuery(testConnectionString);
+						}
 						connectionPool.setMaxPoolSize(this.maxConnections);
 						connectionPool.setCheckoutTimeout(loginTimeout*1000);
 						connectionPool.setConnectionCustomizerClassName(JdbcConnectionCustomizer.class.getName());
