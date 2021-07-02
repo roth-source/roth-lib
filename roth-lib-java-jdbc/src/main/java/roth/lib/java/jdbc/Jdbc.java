@@ -311,7 +311,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						}
 						catch(Exception e)
 						{
-							e.printStackTrace();
+							throw new JdbcException(e.getMessage());
 						}
 					}
 				}
@@ -319,7 +319,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 	}
 
@@ -366,7 +366,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				throw new JdbcException(e.getMessage());
 			}
 		}
 		return wheres;
@@ -398,7 +398,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				throw new JdbcException(e.getMessage());
 			}
 		}
 		if(!nameValues.isEmpty())
@@ -428,7 +428,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 					}
 					catch(Exception e)
 					{
-						e.printStackTrace();
+						throw new JdbcException(e.getMessage());
 					}
 				}
 			}
@@ -545,7 +545,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 	}
 	
@@ -582,7 +582,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 		return models;
 	}
@@ -618,7 +618,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 		return model;
 	}
@@ -642,7 +642,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 				}
 				catch(Exception e)
 				{
-					e.printStackTrace();
+					throw new JdbcException(e.getMessage());
 				}
 				if(!dataMap.isEmpty())
 				{
@@ -652,7 +652,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 		return dataMaps;
 	}
