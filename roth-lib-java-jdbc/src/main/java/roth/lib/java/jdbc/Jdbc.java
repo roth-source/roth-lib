@@ -508,7 +508,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 	}
 	
