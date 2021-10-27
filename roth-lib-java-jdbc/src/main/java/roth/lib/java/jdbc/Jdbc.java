@@ -57,6 +57,8 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	protected Properties properties;
 	protected int maxConnections = 20;
 	protected int minConnections = 5;
+	protected int maxIdleTime = 0;
+	protected int maxIdleTimeExcessConnections = 0;
 
 	protected int loginTimeout = 60;
 	protected int deadLockRetries = 3;
@@ -167,7 +169,17 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	{
 		this.maxConnections = maxConnections;
 	}
-	
+
+	public void setMaxIdleTime(int maxIdleTime)
+	{
+		this.maxIdleTime = maxIdleTime;
+	}
+
+	public void setMaxIdleTimeExcessConnections(int maxIdleTimeExcessConnections)
+	{
+		this.maxIdleTimeExcessConnections = maxIdleTimeExcessConnections;
+	}
+
 	public void setDeadLockRetries(int deadLockRetries)
 	{
 		this.deadLockRetries = deadLockRetries;
@@ -198,6 +210,14 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						connectionPool.setMinPoolSize(this.minConnections);   
 						connectionPool.setInitialPoolSize(this.minConnections);
 						connectionPool.setAcquireIncrement(this.minConnections);
+						if(this.maxIdleTime > 0)
+						{
+							connectionPool.setMaxIdleTime(this.maxIdleTime);
+						}
+						if(this.maxIdleTimeExcessConnections > 0)
+						{
+							connectionPool.setMaxIdleTimeExcessConnections(this.maxIdleTimeExcessConnections);
+						}
 						connectionPool.setTestConnectionOnCheckout(true);
 						if(this.testConnectionString != null)
 						{
