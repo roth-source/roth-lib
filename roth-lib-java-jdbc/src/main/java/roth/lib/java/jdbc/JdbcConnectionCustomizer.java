@@ -8,12 +8,12 @@ public class JdbcConnectionCustomizer implements ConnectionCustomizer
 {
     public void onAcquire( Connection c, String pdsIdt )
     { 
-       System.out.println("Acquired " + c ); 
+       //System.out.println("Acquired " + c ); 
     }
 
     public void onDestroy( Connection c, String pdsIdt )
     { 
-    	System.out.println("Destroying " + c );
+    	//System.out.println("Destroying " + c );
     }
 
     public void onCheckOut( Connection c, String pdsIdt )
