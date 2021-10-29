@@ -225,7 +225,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						}
 						connectionPool.setMaxPoolSize(this.maxConnections);
 						connectionPool.setCheckoutTimeout(loginTimeout*1000);
-						connectionPool.setConnectionCustomizerClassName(JdbcConnectionCustomizer.class.getName());
+						//connectionPool.setConnectionCustomizerClassName(JdbcConnectionCustomizer.class.getName());
 					}
 					catch(PropertyVetoException pvx)
 					{
