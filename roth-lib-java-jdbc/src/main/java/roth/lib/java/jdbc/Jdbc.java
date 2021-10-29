@@ -169,6 +169,11 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	{
 		this.maxConnections = maxConnections;
 	}
+	
+	public void setMinPoolSize(int minPoolsize)
+	{
+		this.minConnections = minPoolsize;
+	}
 
 	public void setMaxIdleTime(int maxIdleTime)
 	{
