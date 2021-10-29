@@ -57,6 +57,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	protected Properties properties;
 	protected int maxConnections = 20;
 	protected int minConnections = 5;
+	protected int acquireIncrement = 5;
 	protected int maxIdleTime = 0;
 	protected int maxIdleTimeExcessConnections = 0;
 
@@ -175,6 +176,11 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		this.minConnections = minPoolsize;
 	}
 
+	public void setAcquireIncrement(int acquireIncrement)
+	{
+		this.acquireIncrement = acquireIncrement;
+	}
+	
 	public void setMaxIdleTime(int maxIdleTime)
 	{
 		this.maxIdleTime = maxIdleTime;
@@ -214,7 +220,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						connectionPool.setPassword(password);                                  
 						connectionPool.setMinPoolSize(this.minConnections);   
 						connectionPool.setInitialPoolSize(this.minConnections);
-						connectionPool.setAcquireIncrement(this.minConnections);
+						connectionPool.setAcquireIncrement(this.acquireIncrement);
 						if(this.maxIdleTime > 0)
 						{
 							connectionPool.setMaxIdleTime(this.maxIdleTime);
