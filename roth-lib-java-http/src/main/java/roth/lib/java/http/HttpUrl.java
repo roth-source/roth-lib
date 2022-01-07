@@ -30,7 +30,7 @@ public class HttpUrl implements Characters
 	public static final String NUM_CHARS				= "0-9";
 	public static final String ALPHA_NUM_CHARS		= ALPHA_CHARS + NUM_CHARS;
 	public static final String DOT_DASH_CHARS		= ".\\-";
-	public static final String SPECIAL_CHARS			= DOT_DASH_CHARS + "+_~%/";
+	public static final String SPECIAL_CHARS			= DOT_DASH_CHARS + "+_~%/\\[\\]";
 	
 	public static final String PROTOCOL_CHARS		= ALPHA_NUM_CHARS;
 	public static final String HOST_CHARS			= ALPHA_NUM_CHARS + DOT_DASH_CHARS;
