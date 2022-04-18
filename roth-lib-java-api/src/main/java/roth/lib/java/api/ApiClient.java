@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
+import java.net.ConnectException;
 
 import roth.lib.java.Characters;
 import roth.lib.java.Generic;
@@ -13,6 +14,8 @@ import roth.lib.java.http.HttpHeaders;
 import roth.lib.java.http.HttpMethod;
 import roth.lib.java.http.HttpRequest;
 import roth.lib.java.http.HttpResponse;
+import roth.lib.java.http.HttpStatus;
+import roth.lib.java.http.HttpStatusCode;
 import roth.lib.java.http.HttpUrl;
 import roth.lib.java.inputter.Inputter;
 import roth.lib.java.inputter.MapperInputter;
@@ -900,8 +903,36 @@ public abstract class ApiClient<ApiRequest, ApiResponse> extends HttpClient impl
 			checkResponse(response);
 			return response;
 		}
+		catch(ConnectException e)
+		{
+			HttpResponse<T> httpResponse = new HttpResponse<T>();
+			HttpStatus status = new HttpStatus().setStatusCode(HttpStatusCode._503);
+			httpResponse.setStatus(status);
+			return httpResponse;
+		}
 		catch(IOException e)
 		{
+			if(e.getMessage() != null && e.getMessage().length() > 2)
+			{
+				int loc = e.getMessage().indexOf(' ');
+				if(loc > 0)
+				{
+					String msg = e.getMessage().substring(0, loc);
+					if(msg != null && msg.length() > 1)
+					{
+						HttpStatusCode code = HttpStatusCode.fromString(msg);
+						if(code != null)
+						{
+							HttpResponse<T> httpResponse = new HttpResponse<T>();
+							HttpStatus status = new HttpStatus().setStatusCode(code);
+							httpResponse.setStatus(status);
+							return httpResponse;
+						}
+						
+					}
+				}
+			}
+			
 			logException(e);
 			throw new ApiException(e);
 		}
