@@ -162,7 +162,10 @@ public class TableMapper extends Mapper
 		}
 		if(serializedValue != null)
 		{
-			serializedValue = serializedValue.replaceFirst(FORMULA_PATTERN, FORMULA_ESCAPE);
+			if(getMapperConfig().isEscapeSerializedValue())
+			{
+				serializedValue = serializedValue.replaceFirst(FORMULA_PATTERN, FORMULA_ESCAPE);
+			}
 			if(propertyReflector != null && propertyReflector.hasTrimLength() && serializedValue.length() > propertyReflector.getProperty().trimLength())
 			{
 				serializedValue = serializedValue.substring(0, propertyReflector.getProperty().trimLength());
