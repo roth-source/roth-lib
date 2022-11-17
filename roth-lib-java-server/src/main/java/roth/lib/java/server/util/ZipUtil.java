@@ -29,43 +29,43 @@ public class ZipUtil
 		return extract(new File(getFileSystemPath(file.getPath())), new File(getFileSystemPath(parentDir.getPath())), getFileSystemPath(file.getName()).replaceFirst("\\.[A-Za-z]+?$", "") + "/");
 	}
 	
-	private static File extract(File file, File parentDir, String dirname)
+	private static File extract(File file, File parentDir, String dirname) throws Exception
 	{
-		File dir = new File(parentDir, dirname);
-		try(ZipFile zipFile = new ZipFile(file))
-		{
-			delete(dir);
-			dir.mkdirs();
-			Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-			while(zipEntries.hasMoreElements())
-			{
-				ZipEntry zipEntry = zipEntries.nextElement();
-				File entryFile = new File(dir, zipEntry.getName());
-				if(zipEntry.isDirectory())
-				{
-					entryFile.mkdirs();
-				}
-				else
-				{
-					entryFile.getParentFile().mkdirs();
-					int count = 0;
-					byte[] buffer = new byte[BUFFER_SIZE];
-					try(InputStream input = zipFile.getInputStream(zipEntry); FileOutputStream output = new FileOutputStream(entryFile);)
-					{
-						while((count = input.read(buffer, 0, BUFFER_SIZE)) != -1)
-						{
-							output.write(buffer, 0, count);
-						}
-						output.flush();
-					}
-				}
-			}
-		}
-		catch(IOException e)
-		{
-			e.printStackTrace();
-		}
-		return dir;
+//		File dir = new File(parentDir, dirname);
+//		try(ZipFile zipFile = new ZipFile(file))
+//		{
+//			delete(dir);
+//			dir.mkdirs();
+//			Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+//			while(zipEntries.hasMoreElements())
+//			{
+//				ZipEntry zipEntry = zipEntries.nextElement();
+//				File entryFile = new File(new File(getFileSystemPath(dir.getCanonicalPath())), zipEntry.getName());
+//				if(zipEntry.isDirectory())
+//				{
+//					entryFile.mkdirs();
+//				}
+//				else
+//				{
+//					entryFile.getParentFile().mkdirs();
+//					int count = 0;
+//					byte[] buffer = new byte[BUFFER_SIZE];
+//					try(InputStream input = zipFile.getInputStream(zipEntry); FileOutputStream output = new FileOutputStream(entryFile);)
+//					{
+//						while((count = input.read(buffer, 0, BUFFER_SIZE)) != -1)
+//						{
+//							output.write(buffer, 0, count);
+//						}
+//						output.flush();
+//					}
+//				}
+//			}
+//		}
+//		catch(IOException e)
+//		{
+//			e.printStackTrace();
+//		}
+		throw new Exception("Not implemented");
 	}
 	
 	public static String getFileSystemPath(String urlPath) throws Exception {
