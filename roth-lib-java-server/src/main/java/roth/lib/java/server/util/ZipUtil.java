@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -17,17 +19,17 @@ public class ZipUtil
 		
 	}
 	
-	public static File extract(File file)
+	public static File extract(File file) throws Exception
 	{
 		return extract(file, file.getParentFile());
 	}
 	
-	public static File extract(File file, File parentDir)
+	public static File extract(File file, File parentDir) throws Exception
 	{
-		return extract(file, parentDir, file.getName().replaceFirst("\\.[A-Za-z]+?$", "") + "/");
+		return extract(new File(getFileSystemPath(file.getPath())), new File(getFileSystemPath(parentDir.getPath())), getFileSystemPath(file.getName()).replaceFirst("\\.[A-Za-z]+?$", "") + "/");
 	}
 	
-	public static File extract(File file, File parentDir, String dirname)
+	private static File extract(File file, File parentDir, String dirname)
 	{
 		File dir = new File(parentDir, dirname);
 		try(ZipFile zipFile = new ZipFile(file))
@@ -66,6 +68,16 @@ public class ZipUtil
 		return dir;
 	}
 	
+	public static String getFileSystemPath(String urlPath) throws Exception {
+
+		urlPath = urlPath.replace("%2e", ".");
+		urlPath = urlPath.replace("%2f", "/");
+		urlPath = urlPath.replace("%5c", "/");
+
+		Path normalizedPath = Paths.get(urlPath).normalize();
+		return normalizedPath.toString();
+	}
+	
 	protected static void delete(File dir)
 	{
 		if(dir.exists() && dir.isDirectory())
@@ -83,8 +95,15 @@ public class ZipUtil
 	
 	public static void main(String[]  args)
 	{
-		extract(new File("war/test-war-1.war"), new File("/Users/User/Downloads/"));
-		extract(new File("war/test-war-2.war"), new File("/Users/User/Downloads/"));
+		try
+		{
+			extract(new File("war/test-war-1.war"), new File("/Users/User/Downloads/"));
+			extract(new File("war/test-war-2.war"), new File("/Users/User/Downloads/"));
+		}
+		catch(Exception ex)
+		{
+			
+		}
 	}
 	
 }
