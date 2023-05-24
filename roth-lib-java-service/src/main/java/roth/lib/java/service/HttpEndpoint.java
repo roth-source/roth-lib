@@ -127,12 +127,12 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				if(origin != null)
 				{
 					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-					response.setHeader(CONTENT_SECURITY_POLICY, getContentSecurityOrigins(origin));
+					response.setHeader(CONTENT_SECURITY_POLICY, dev ? origin : getContentSecurityOrigins(origin));
 					response.setHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
 				}
 				else
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, getSecurityHost(request));
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, dev ? ANY : getSecurityHost(request));
 				}
 				response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, ALLOWED_METHODS);
 				response.setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, EXPOSED_HEADERS.toString());
@@ -386,7 +386,8 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		}
 	}
 	
-	private String getContentSecurityOrigins(String origin) {
+	private String getContentSecurityOrigins(String origin) 
+	{
 		InternetDomainName idn = InternetDomainName.from(origin).topPrivateDomain();
 		if(idn != null)
 		{
