@@ -58,11 +58,12 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 	protected static String ACCESS_CONTROL_ALLOW_METHODS 			= "Access-Control-Allow-Methods";
 	protected static String CONTENT_SECURITY_POLICY 				= "Content-Security-Policy";
 	protected static String ACCESS_CONTROL_EXPOSE_HEADERS 		    = "Access-Control-Expose-Headers";
+	protected static String STRICT_TRANSPORT_SECURITY			    = "Strict-Transport-Security";
 	protected static String DEFAULT_SOURCE_SELF                     ="default-src 'self' ";
-	protected static String CONTENT_TYPE_PARAM	 				= "contentType";
+	protected static String CONTENT_TYPE_PARAM	 					= "contentType";
 	protected static String CONTENT_TYPE_HEADER 					= "Content-Type";
 	protected static String ACCEPT_PARAM		 					= "accept";
-	protected static String ACCEPT_HEADER		 				= "Accept";
+	protected static String ACCEPT_HEADER		 					= "Accept";
 	protected static String ALLOWED_METHODS 						= "GET, POST";
 	protected static List<HttpMethod> SUPPORTED_METHODS			= List.fromArray(HttpMethod.GET, HttpMethod.POST);
 	protected static List<String> LOCALHOSTS 					= List.fromArray("localhost", "127.0.0.1");
@@ -136,6 +137,7 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				}
 				response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, ALLOWED_METHODS);
 				response.setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, EXPOSED_HEADERS.toString());
+				response.setHeader(STRICT_TRANSPORT_SECURITY, "max-age=31536000; includeSubDomains");
 				HttpMethod httpMethod = HttpMethod.fromString(request.getMethod());
 				if(httpMethod != null)
 				{
