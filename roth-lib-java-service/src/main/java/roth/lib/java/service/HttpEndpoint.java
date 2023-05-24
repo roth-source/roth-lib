@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.net.InternetDomainName;
+
 import roth.lib.java.Characters;
 import roth.lib.java.form.FormMapper;
 import roth.lib.java.form.MultipartFormMapper;
@@ -385,7 +387,12 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 	}
 	
 	private String getContentSecurityOrigins(String origin) {
-		return DEFAULT_SOURCE_SELF + origin + " *." + origin + getDefaultOrigins();
+		InternetDomainName idn = InternetDomainName.from(origin).topPrivateDomain();
+		if(idn != null)
+		{
+			return DEFAULT_SOURCE_SELF + idn.toString() + " *." + idn.toString() + getDefaultOrigins();
+		}
+		return DEFAULT_SOURCE_SELF + origin + getDefaultOrigins();
 	}
 	
 	public String getDefaultOrigins()
