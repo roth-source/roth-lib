@@ -128,7 +128,10 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				if(origin != null)
 				{
 					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-					response.setHeader(CONTENT_SECURITY_POLICY, dev ? origin : getContentSecurityOrigins(origin));
+					if(restrictSecurityOrigin())
+					{
+						response.setHeader(CONTENT_SECURITY_POLICY, dev ? origin : getContentSecurityOrigins(origin));
+					}
 					response.setHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
 				}
 				else
@@ -388,7 +391,12 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		}
 	}
 	
-	private String getContentSecurityOrigins(String origin) 
+	protected boolean restrictSecurityOrigin()
+	{
+		return true;
+	}
+	
+	protected String getContentSecurityOrigins(String origin) 
 	{
 		try
 		{
