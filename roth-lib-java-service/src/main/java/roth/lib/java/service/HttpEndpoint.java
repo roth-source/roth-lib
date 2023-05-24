@@ -54,7 +54,9 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 	protected static String ACCESS_CONTROL_ALLOW_ORIGIN 			= "Access-Control-Allow-Origin";
 	protected static String ACCESS_CONTROL_ALLOW_CREDENTIALS 		= "Access-Control-Allow-Credentials";
 	protected static String ACCESS_CONTROL_ALLOW_METHODS 			= "Access-Control-Allow-Methods";
-	protected static String ACCESS_CONTROL_EXPOSE_HEADERS 		= "Access-Control-Expose-Headers";
+	protected static String CONTENT_SECURITY_POLICY 				= "Content-Security-Policy";
+	protected static String ACCESS_CONTROL_EXPOSE_HEADERS 		    = "Access-Control-Expose-Headers";
+	protected static String DEFAULT_SOURCE_SELF                     ="default-src 'self' ";
 	protected static String CONTENT_TYPE_PARAM	 				= "contentType";
 	protected static String CONTENT_TYPE_HEADER 					= "Content-Type";
 	protected static String ACCEPT_PARAM		 					= "accept";
@@ -123,11 +125,12 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				if(origin != null)
 				{
 					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+					response.setHeader(CONTENT_SECURITY_POLICY, getContentSecurityOrigins(origin));
 					response.setHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
 				}
 				else
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, ANY);
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, getSecurityHost(request));
 				}
 				response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, ALLOWED_METHODS);
 				response.setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, EXPOSED_HEADERS.toString());
@@ -381,6 +384,17 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		}
 	}
 	
+	private String getContentSecurityOrigins(String origin) {
+		return DEFAULT_SOURCE_SELF + origin + " *." + origin + getDefaultOrigins();
+	}
+	
+	public String getDefaultOrigins()
+	{
+		return "";
+	}
+	
+	public abstract String getSecurityHost(HttpServletRequest request);
+
 	public abstract void exception(HttpServletRequest request, HttpServletResponse response, Throwable e);
 	
 	protected Object endpoint(HttpServletRequest request, HttpServletResponse response, String methodName)
