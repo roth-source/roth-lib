@@ -128,19 +128,14 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				if(origin != null)
 				{
 					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-					if(restrictSecurityOrigin())
-					{
-						response.setHeader(CONTENT_SECURITY_POLICY, dev ? origin : getContentSecurityOrigins(origin));
-					}
 					response.setHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
 				}
 				else
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, dev ? ANY : getSecurityHost(request));
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, ANY);
 				}
 				response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, ALLOWED_METHODS);
 				response.setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, EXPOSED_HEADERS.toString());
-				response.setHeader(STRICT_TRANSPORT_SECURITY, "max-age=31536000; includeSubDomains");
 				HttpMethod httpMethod = HttpMethod.fromString(request.getMethod());
 				if(httpMethod != null)
 				{
