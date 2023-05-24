@@ -390,7 +390,7 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 	{
 		try
 		{
-			InternetDomainName idn = InternetDomainName.from(origin).topPrivateDomain();
+			InternetDomainName idn = InternetDomainName.from(removeProtocol(origin)).topPrivateDomain();
 			if(idn != null)
 			{
 				return DEFAULT_SOURCE_SELF + idn.toString() + " *." + idn.toString() + getDefaultOrigins();
@@ -400,7 +400,16 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		{
 			
 		}
-		return DEFAULT_SOURCE_SELF + origin + getDefaultOrigins();
+		return DEFAULT_SOURCE_SELF + removeProtocol(origin) + getDefaultOrigins();
+	}
+	
+	private String removeProtocol(String origin)
+	{
+		if(origin == null)
+		{
+			return null;
+		}
+		return origin.replace("https://", "");
 	}
 	
 	public String getDefaultOrigins()
