@@ -388,10 +388,17 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 	
 	private String getContentSecurityOrigins(String origin) 
 	{
-		InternetDomainName idn = InternetDomainName.from(origin).topPrivateDomain();
-		if(idn != null)
+		try
 		{
-			return DEFAULT_SOURCE_SELF + idn.toString() + " *." + idn.toString() + getDefaultOrigins();
+			InternetDomainName idn = InternetDomainName.from(origin).topPrivateDomain();
+			if(idn != null)
+			{
+				return DEFAULT_SOURCE_SELF + idn.toString() + " *." + idn.toString() + getDefaultOrigins();
+			}
+		}
+		catch (Exception ex)
+		{
+			
 		}
 		return DEFAULT_SOURCE_SELF + origin + getDefaultOrigins();
 	}
