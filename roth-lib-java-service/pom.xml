@@ -31,10 +31,11 @@
 		    <artifactId>jetty-webapp</artifactId>
 		    <version>9.4.51.v20230217</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>30.0-jre</version>
+		    <groupId>com.google.guava</groupId>
+		    <artifactId>guava</artifactId>
+		    <version>32.0.1-jre</version>
 		</dependency>
 		
 	</dependencies>
