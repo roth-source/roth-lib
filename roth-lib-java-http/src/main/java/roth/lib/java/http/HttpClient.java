@@ -11,6 +11,10 @@ import roth.lib.java.inputter.Inputter;
 
 public class HttpClient
 {
+	private static final String INVALID_FTP = "ftp://";
+	private static final String INVALID_DICT = "dict://";
+	private static final String INVALID_FILE = "file://";
+	private static final String INVALID_GOPHER = "gopher://";
 	
 	public HttpClient()
 	{
@@ -19,6 +23,10 @@ public class HttpClient
 	
 	public HttpConnection connection(HttpUrl url, boolean debug) throws IOException
 	{
+		if(invalidUrl(url.toString()))
+		{
+			throw new IOException("Unsafe URL");
+		}
 		URLConnection connection = new URL(url.toString()).openConnection();
 		if(connection instanceof HttpURLConnection)
 		{
@@ -44,6 +52,18 @@ public class HttpClient
 		}
 	}
 	
+	private boolean invalidUrl(String url) {
+		if(url == null)
+		{
+			return false;
+		}
+		if(url.startsWith(INVALID_FTP) || url.startsWith(INVALID_DICT)  || url.startsWith(INVALID_FILE)  || url.startsWith(INVALID_GOPHER) )
+		{
+			return false;
+		}
+		return true;
+	}
+
 	protected void setSslSocketFactory(HttpsURLConnection connection)
 	{
 		

@@ -361,13 +361,7 @@ var checkSecure = checkSecure || function()
 {
 	if(!isDev() && isHttpProtocol())
 	{
-		var url = Protocol.HTTPS + "//";
-		url += window.location.host;
-		url += (window.location.port ? ":" + window.location.port : "");
-		url += window.location.pathname;
-		url += window.location.search;
-		url += window.location.hash;
-		window.location.replace(url);
+		location.protocol = "https:";
 	}
 };
 

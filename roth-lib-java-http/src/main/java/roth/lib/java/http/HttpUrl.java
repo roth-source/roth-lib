@@ -236,7 +236,7 @@ public class HttpUrl implements Characters
 	
 	public HttpHeaders getHeaders()
 	{
-		return new HttpHeaders().setHeader("Host", getHost());
+		return new HttpHeaders().setHeader("Host", getHost() == null ? getHost() : getHost().replaceAll("[\\r\\n]", ""));
 	}
 	
 	public HttpUrl setProtocol(HttpProtocol protocol)

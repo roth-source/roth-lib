@@ -127,7 +127,7 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				String origin = request.getHeader(ORIGIN);
 				if(origin != null)
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin == null ? origin : origin.replaceAll("[\\r\\n]", ""));
 					if(restrictSecurityOrigin())
 					{
 						response.setHeader(CONTENT_SECURITY_POLICY, dev ? origin : getContentSecurityOrigins(origin));
@@ -419,7 +419,7 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		{
 			return null;
 		}
-		return origin.replace("https://", "");
+		return origin.replace("https://", "").replaceAll("[\\r\\n]", "");
 	}
 	
 	public String getDefaultOrigins()

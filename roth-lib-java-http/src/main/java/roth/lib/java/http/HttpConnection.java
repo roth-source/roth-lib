@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
@@ -188,10 +189,20 @@ public class HttpConnection implements Characters
 			String name = headerEntry.getKey();
 			if(name != null)
 			{
-				headers.setHeader(name, headerEntry.getValue());
+				headers.setHeader(name, headerEntry.getValue() == null ? headerEntry.getValue() : sanitizeHeaders(headerEntry.getValue()));
 			}
 		}
 		return headers;
+	}
+	
+	private java.util.List<String> sanitizeHeaders(java.util.List<String> headers)
+	{
+		java.util.List<String> newList = new ArrayList<String>();
+		for(String header : headers)
+		{
+			newList.add(header.replaceAll("[\\r\\n]", ""));
+		}
+		return newList;
 	}
 	
 	protected String readLine(InputStream input) throws IOException
