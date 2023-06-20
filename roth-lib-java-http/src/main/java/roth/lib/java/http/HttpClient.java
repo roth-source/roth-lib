@@ -55,13 +55,13 @@ public class HttpClient
 	private boolean invalidUrl(String url) {
 		if(url == null)
 		{
-			return false;
+			return true;
 		}
 		if(url.startsWith(INVALID_FTP) || url.startsWith(INVALID_DICT)  || url.startsWith(INVALID_FILE)  || url.startsWith(INVALID_GOPHER) )
 		{
-			return false;
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	protected void setSslSocketFactory(HttpsURLConnection connection)
