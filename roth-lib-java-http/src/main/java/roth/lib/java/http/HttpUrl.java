@@ -1,6 +1,7 @@
 package roth.lib.java.http;
 
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -181,8 +182,8 @@ public class HttpUrl implements Characters
 			Matcher parameterMatcher = HttpUrl.PARAM_PATTERN.matcher(params);
 			while(parameterMatcher.find())
 			{
-				String name = UrlUtil.decode(parameterMatcher.group(HttpUrl.NAME));
-				String value = UrlUtil.decode(parameterMatcher.group(HttpUrl.VALUE));
+				String name = UrlUtil.sanitizeHeader(UrlUtil.decode(parameterMatcher.group(HttpUrl.NAME)));
+				String value = UrlUtil.sanitizeHeader(UrlUtil.decode(parameterMatcher.group(HttpUrl.VALUE)));
 				paramMap.put(name, value);
 			}
 		}
@@ -236,7 +237,14 @@ public class HttpUrl implements Characters
 	
 	public HttpHeaders getHeaders()
 	{
-		return new HttpHeaders().setHeader("Host", getHost() == null ? getHost() : getHost().replaceAll("[\\r\\n]", ""));
+		try
+		{
+			return new HttpHeaders().setHeader("Host", URLEncoder.encode(getHost() == null ? null : UrlUtil.sanitizeUrl(getHost()), java.nio.charset.StandardCharsets.UTF_8.toString()));
+		}
+		catch(Exception ex)
+		{
+			return null;
+		}
 	}
 	
 	public HttpUrl setProtocol(HttpProtocol protocol)
@@ -292,7 +300,7 @@ public class HttpUrl implements Characters
 	
 	public HttpUrl addParam(String name, String value)
 	{
-		this.paramMap.put(name, value);
+		this.paramMap.put(UrlUtil.sanitizeHeader(name), UrlUtil.sanitizeHeader(value));
 		return this;
 	}
 	
@@ -332,9 +340,9 @@ public class HttpUrl implements Characters
 			builder.append(pass);
 			builder.append(AT);
 		}
-		builder.append(inetAddress.getHostName());
-		builder.append(port != HTTP_PORT && port != HTTPS_PORT ? ":" + port : "");
-		builder.append(toResourcePath());
+		builder.append(UrlUtil.sanitizeUrl(inetAddress.getHostName()));
+		builder.append(UrlUtil.sanitizeUrl(port != HTTP_PORT && port != HTTPS_PORT ? ":" + port : ""));
+		builder.append(UrlUtil.sanitizeUrl(toResourcePath()));
 		return builder.toString();
 	}
 	

@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import roth.lib.java.inputter.Inputter;
+import roth.lib.java.util.UrlUtil;
 
 public class HttpClient
 {
@@ -27,7 +29,7 @@ public class HttpClient
 		{
 			throw new IOException("Unsafe URL");
 		}
-		URLConnection connection = new URL(url.toString()).openConnection();
+		URLConnection connection = new URL(URLEncoder.encode(UrlUtil.sanitizeUrl(url.toString()), java.nio.charset.StandardCharsets.UTF_8.toString())).openConnection();
 		if(connection instanceof HttpURLConnection)
 		{
 			if(connection instanceof HttpsURLConnection)
@@ -44,7 +46,7 @@ public class HttpClient
 			{
 				connection.setReadTimeout(readTimeout);
 			}
-			return new HttpConnection(url, (HttpURLConnection) connection, debug);
+			return new HttpConnection(new HttpUrl(URLEncoder.encode(UrlUtil.sanitizeUrl(url.toString()), java.nio.charset.StandardCharsets.UTF_8.toString())), (HttpURLConnection) connection, debug);
 		}
 		else
 		{

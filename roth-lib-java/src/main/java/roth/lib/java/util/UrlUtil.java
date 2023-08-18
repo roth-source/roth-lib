@@ -48,8 +48,17 @@ public class UrlUtil implements Characters
 		{
 			return null;
 		}
-		return url.replaceAll("[\\r\\n]", "").replace("\"", "").replace(";", "").replace("\\/", "").replace(" ", "");
-		
+		return url.replaceAll("[\\r\\n]", "").replace(";", "").replace("\\/", "");
 	}
 	
+	public static String sanitizeHeader(String headerValue)
+	{
+		if(headerValue == null)
+		{
+			return null;
+		}
+		return headerValue.replaceAll("[\\r\\n]", "").replace(";", "").replace("\\/", "");
+		
+	}
+
 }

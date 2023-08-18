@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.HttpURLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
@@ -18,6 +19,7 @@ import java.util.zip.GZIPInputStream;
 import roth.lib.java.Characters;
 import roth.lib.java.inputter.Inputter;
 import roth.lib.java.lang.List;
+import roth.lib.java.util.UrlUtil;
 
 public class HttpConnection implements Characters
 {
@@ -189,18 +191,26 @@ public class HttpConnection implements Characters
 			String name = headerEntry.getKey();
 			if(name != null)
 			{
-				headers.setHeader(name, headerEntry.getValue() == null ? headerEntry.getValue() : sanitizeHeaders(headerEntry.getValue()));
+				try
+				{
+					headers.setHeader(URLEncoder.encode(UrlUtil.sanitizeHeader(name), java.nio.charset.StandardCharsets.UTF_8.toString()), headerEntry.getValue() == null ? null : sanitizeHeaders(headerEntry.getValue()));
+				}
+				catch(IOException ex)
+				{
+					
+				}
+				
 			}
 		}
 		return headers;
 	}
 	
-	private java.util.List<String> sanitizeHeaders(java.util.List<String> headers)
+	private java.util.List<String> sanitizeHeaders(java.util.List<String> headers) throws IOException
 	{
 		java.util.List<String> newList = new ArrayList<String>();
 		for(String header : headers)
 		{
-			newList.add(header.replaceAll("[\\r\\n]", ""));
+			newList.add(URLEncoder.encode(UrlUtil.sanitizeHeader(header), java.nio.charset.StandardCharsets.UTF_8.toString()));
 		}
 		return newList;
 	}
