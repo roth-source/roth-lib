@@ -46,7 +46,7 @@ public class HttpClient
 			{
 				connection.setReadTimeout(readTimeout);
 			}
-			return new HttpConnection(new HttpUrl(URLEncoder.encode(UrlUtil.sanitizeUrl(url.toString()), java.nio.charset.StandardCharsets.UTF_8.toString())), (HttpURLConnection) connection, debug);
+			return new HttpConnection(url, (HttpURLConnection) connection, debug);
 		}
 		else
 		{
