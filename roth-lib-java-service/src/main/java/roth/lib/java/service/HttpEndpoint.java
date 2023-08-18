@@ -44,6 +44,7 @@ import roth.lib.java.type.MimeType;
 import roth.lib.java.util.EnumUtil;
 import roth.lib.java.util.IoUtil;
 import roth.lib.java.util.ReflectionUtil;
+import roth.lib.java.util.UrlUtil;
 import roth.lib.java.validate.Validator;
 import roth.lib.java.validate.ValidatorException;
 
@@ -127,10 +128,10 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				String origin = request.getHeader(ORIGIN);
 				if(origin != null)
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin == null ? origin : origin.replaceAll("[\\r\\n]", ""));
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, UrlUtil.sanitizeUrl(origin));
 					if(restrictSecurityOrigin())
 					{
-						response.setHeader(CONTENT_SECURITY_POLICY, dev ? origin : getContentSecurityOrigins(origin));
+						response.setHeader(CONTENT_SECURITY_POLICY, dev ? UrlUtil.sanitizeUrl(origin) : getContentSecurityOrigins(UrlUtil.sanitizeUrl(origin)));
 					}
 					response.setHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
 				}

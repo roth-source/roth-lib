@@ -42,4 +42,14 @@ public class UrlUtil implements Characters
 		return path.replaceAll(" ", "%20");
 	}
 	
+	public static String sanitizeUrl(String url)
+	{
+		if(url == null)
+		{
+			return null;
+		}
+		return url.replaceAll("[\\r\\n]", "").replace("\"", "").replace(";", "").replace("\\/", "").replace(" ", "");
+		
+	}
+	
 }

@@ -1,6 +1,7 @@
 package roth.lib.java.service.server;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -225,7 +226,7 @@ public class ServiceServer
 				webInfDir = new File(webAppDir, WEB_INF);
 			}
 			server = new Server();
-			sslContextFactory = new SslContextFactory();
+			sslContextFactory = new SslContextFactory.Server();
 			sslContextFactory.setKeyStorePath(keyStorePath);
 			sslContextFactory.setKeyStorePassword(keyStorePassword);
 			sslContextFactory.setKeyManagerPassword(keyManagerPassword);
@@ -254,7 +255,9 @@ public class ServiceServer
 			webAppContext.setContextPath(contextPath);
 			server.setHandler(webAppContext);
 			scanner.setScanInterval(scanInterval);
-			scanner.addScanDir(webInfDir);
+			java.util.List<File> directories = new ArrayList<File>();
+			directories.add(webInfDir);
+			scanner.setScanDirs(directories);
 			scanner.addListener(scanListener);
 			scanner.start();
 			server.start();
