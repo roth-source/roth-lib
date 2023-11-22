@@ -1,10 +1,10 @@
 package roth.lib.java.template;
 
 import java.util.Map;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import roth.lib.java.json.JsonMapper;
@@ -25,28 +25,30 @@ public class Template
 	protected static final String RENDER			= "render";
 	protected static final String SET_VERSION		= String.format("var %s = roth.lib.js.template.version;", VERSION);
 	protected static final String SET_TEMPLATE		= String.format("var %s = new roth.lib.js.template.Template(" + CONFIG + ");", TEMPLATE);
-	
+
 	protected ScriptEngine engine;
+	protected NashornScriptEngineFactory nashornScriptEngineFactory;
 	protected String version;
 	protected Object template;
 	protected Object json;
 	protected JsonMapper jsonMapper;
-	
+
 	public Template()
 	{
 		this(new TemplateConfig());
 	}
-	
+
 	public Template(TemplateConfig config)
 	{
 		init(config);
 	}
-	
+
 	protected void init(TemplateConfig config)
 	{
 		try
 		{
-			engine = new ScriptEngineManager().getEngineByName(ENGINE);
+			nashornScriptEngineFactory = new NashornScriptEngineFactory();
+			engine = nashornScriptEngineFactory.getScriptEngine(ENGINE);
 			engine.eval(ResourceUtil.toString(ROTH_JS));
 			engine.eval(ResourceUtil.toString(ROTH_JS_TEMPLATE));
 			engine.put(CONFIG, config);
@@ -61,13 +63,13 @@ public class Template
 			throw new TemplateException(e);
 		}
 	}
-	
+
 	public Template setJsonMapper(JsonMapper jsonMapper)
 	{
 		this.jsonMapper = jsonMapper;
 		return this;
 	}
-	
+
 	public void dependency(String source)
 	{
 		try
@@ -79,7 +81,7 @@ public class Template
 			throw new TemplateException(e);
 		}
 	}
-	
+
 	public String parse(String source)
 	{
 		try
@@ -92,7 +94,7 @@ public class Template
 			throw new TemplateException(e);
 		}
 	}
-	
+
 	protected Object parseJson(String value)
 	{
 		try
@@ -104,7 +106,7 @@ public class Template
 			throw new TemplateException(e);
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected String serializeJson(Object scope)
 	{
@@ -117,12 +119,12 @@ public class Template
 			return jsonMapper.serialize(scope);
 		}
 	}
-	
+
 	protected Object convertJson(Object scope)
 	{
 		return parseJson(serializeJson(scope));
 	}
-	
+
 	public String eval(String parsedSource, Object scope)
 	{
 		try
@@ -135,7 +137,7 @@ public class Template
 			throw new TemplateException(e);
 		}
 	}
-	
+
 	public String render(String source, Object scope)
 	{
 		try
@@ -148,10 +150,10 @@ public class Template
 			throw new TemplateException(e);
 		}
 	}
-	
+
 	public String getVersion()
 	{
 		return version;
 	}
-	
+
 }
