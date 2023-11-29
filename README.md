@@ -1,6 +1,6 @@
 # roth-lib-java
 
-## Testing you changes on Docker container
+## Testing your changes on Docker container
 
 ```bash
 # From the `roth-lib-java` project root.
