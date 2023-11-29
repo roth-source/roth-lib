@@ -9,4 +9,5 @@ docker build . -t roth-lib-java-11:latest --no-cache --build-arg APP_PATH="roth-
 docker run --name roth-lib-java-11  -it  roth-lib-java-11
 # 
 mvn clean package;
+mvn clean install;
 ```
