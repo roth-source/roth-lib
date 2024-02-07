@@ -8,14 +8,14 @@ roth.lib.js.template = roth.lib.js.template || {};
 
 roth.lib.js.template.Template = roth.lib.js.template.Template || function(config)
 {
-	
+
 	this.config = typeof config === "object" ? config : {};
-	
+
 	this.escapeRegExp = function(value)
 	{
 		return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 	};
-	
+
 	this.syntaxRegExp = (function(self)
 	{
 		var Config =
@@ -55,17 +55,17 @@ roth.lib.js.template.Template = roth.lib.js.template.Template || function(config
 		return new RegExp(builder, "g");
 	})
 	(this);
-	
+
 	this.escape = function(value)
 	{
 		return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 	};
-	
+
 	this.isset = function(value)
 	{
 		return value !== undefined && value !== null;
 	};
-	
+
 };
 
 
@@ -183,4 +183,4 @@ roth.lib.js.template.Template.prototype.render = function(source, scope, thisArg
 
 
 
-roth.lib.js.template.version = "2.0.0-SNAPSHOT";
+roth.lib.js.template.version = "3.0.0-SNAPSHOT";

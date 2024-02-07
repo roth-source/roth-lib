@@ -226,14 +226,14 @@ var mixin = mixin || function(dest, source)
 
 var CookieUtil = CookieUtil ||
 {
-	
-	
+
+
 	get : function(key)
 	{
 		return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(key).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
 	},
-	
-	
+
+
 	set : function(key, value, end, path, domain, secure)
 	{
 		if(!key || /^(?:expires|max\-age|path|domain|secure)$/i.test(key)) { return false; }
@@ -256,21 +256,21 @@ var CookieUtil = CookieUtil ||
 		document.cookie = encodeURIComponent(key) + "=" + encodeURIComponent(value) + expires + (domain ? "; domain=" + domain : "") + (path ? "; path=" + path : "") + (secure ? "; secure" : "");
 		return true;
 	},
-	
-	
+
+
 	remove : function(key, path, domain)
 	{
 		if(!key || !this.has(key)) { return false; }
 		document.cookie = encodeURIComponent(key) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + ( domain ? "; domain=" + domain : "") + ( path ? "; path=" + path : "");
 		return true;
 	},
-	
-	
+
+
 	has : function(key)
 	{
 		return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(key).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
 	}
-	
+
 };
 
 
@@ -280,26 +280,26 @@ var CookieUtil = CookieUtil ||
 
 var CurrencyUtil = CurrencyUtil ||
 {
-	
-	
+
+
 	formatInput : function(value)
 	{
 		return this.format(value, null, null)
 	},
-	
-	
+
+
 	formatText : function(value)
 	{
 		return this.format(value, "$", ",")
 	},
-	
-	
+
+
 	formatRounded : function(value)
 	{
 		return this.format(value, "$", ",", true)
 	},
-	
-	
+
+
 	format : function(value, symbol, seperator, round)
 	{
 		value = parseInt(value);
@@ -308,7 +308,7 @@ var CurrencyUtil = CurrencyUtil ||
 			var decimal = 2;
 			var negative = value < 0;
 			value = Math.abs(value) / 100;
-			if(isTrue(round)) 
+			if(isTrue(round))
 			{
 				decimal = 0;
 				value = Math.round(value);
@@ -353,8 +353,8 @@ var CurrencyUtil = CurrencyUtil ||
 			return "";
 		}
 	},
-	
-	
+
+
 	parse : function(value)
 	{
 		var parsedValue = null;
@@ -370,13 +370,13 @@ var CurrencyUtil = CurrencyUtil ||
 			}
 			catch(e)
 			{
-				
+
 			}
 		}
 		return parsedValue;
 	}
-	
-	
+
+
 };
 
 
@@ -386,14 +386,14 @@ var CurrencyUtil = CurrencyUtil ||
 
 var DateUtil = DateUtil ||
 {
-	
-	
+
+
 	defaultPattern : "yyyy-MM-dd HH:mm:ss z",
-	
-	
+
+
 	defaultLang : "en",
-	
-	
+
+
 	formatRegExp : (function()
 	{
 		var builder = "";
@@ -414,8 +414,8 @@ var DateUtil = DateUtil ||
 		builder += "Z|X|";
 		return new RegExp(builder, "g");
 	})(),
-	
-	
+
+
 	label :
 	{
 		"en" :
@@ -433,15 +433,15 @@ var DateUtil = DateUtil ||
 			"shortDays" : ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 		}
 	},
-	
-	
+
+
 	get : function(year, month, day, hour, minutes, seconds, milliseconds)
 	{
 		month = !isNaN(month) ? month - 1 : 0;
 		return new Date(year, month, day, hour, minutes, seconds, milliseconds);
 	},
-	
-	
+
+
 	format : function(pattern, date, lang)
 	{
 		var self = this;
@@ -607,8 +607,8 @@ var DateUtil = DateUtil ||
 		});
 		return formattedDate;
 	},
-	
-	
+
+
 	parser : function(pattern, lang)
 	{
 		var self = this;
@@ -792,15 +792,15 @@ var DateUtil = DateUtil ||
 			groups : groups
 		}
 	},
-	
-	
+
+
 	isValid : function(pattern, value, lang)
 	{
 		var parser = this.parser(pattern, lang);
 		return parser.regExp.test(value);
 	},
-	
-	
+
+
 	parse : function(pattern, value, lang)
 	{
 		var self = this;
@@ -936,8 +936,8 @@ var DateUtil = DateUtil ||
 		}
 		return date;
 	},
-	
-	
+
+
 	reformat : function(parsePattern, formatPattern, value, lang)
 	{
 		var date = this.parse(parsePattern, value, lang);
@@ -947,14 +947,14 @@ var DateUtil = DateUtil ||
 		}
 		return value;
 	},
-	
-	
+
+
 	equals : function(date1, date2)
 	{
 		return date1 >= date2 && date1 <= date2;
 	},
-	
-	
+
+
 	day : function(date)
 	{
 		if(!isDate(date))
@@ -963,8 +963,8 @@ var DateUtil = DateUtil ||
 		}
 		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 	},
-	
-	
+
+
 	month : function(date)
 	{
 		if(!isDate(date))
@@ -973,8 +973,8 @@ var DateUtil = DateUtil ||
 		}
 		return new Date(date.getFullYear(), date.getMonth(), 1);
 	},
-	
-	
+
+
 	year : function(date)
 	{
 		if(!isDate(date))
@@ -983,8 +983,8 @@ var DateUtil = DateUtil ||
 		}
 		return new Date(date.getFullYear(), 0, 1);
 	}
-	
-	
+
+
 };
 
 
@@ -994,14 +994,14 @@ var DateUtil = DateUtil ||
 
 var IdUtil = IdUtil ||
 {
-	
-	
+
+
 	defaultLength : 10,
-	
-	
+
+
 	defaultKey : "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	
-	
+
+
 	generate : function(length, key)
 	{
 		length = isNumber(length) ? length : this.defaultLength;
@@ -1013,7 +1013,7 @@ var IdUtil = IdUtil ||
 		}
 		return value;
 	}
-	
+
 };
 
 
@@ -1023,29 +1023,29 @@ var IdUtil = IdUtil ||
 
 var NumberUtil = NumberUtil ||
 {
-	
-	
+
+
 	formatInt : function(value)
 	{
 		var parsedValue = parseInt(value);
 		return !isNaN(parsedValue) ? parsedValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
 	},
-	
-	
+
+
 	formatDecimal : function(value)
 	{
 		var parsedValue = parseFloat(value);
 		return !isNaN(parsedValue) ? parsedValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
 	},
-	
-	
+
+
 	formatPercent : function(value, decimal)
 	{
 		decimal = isNumber(decimal) ? decimal : 0;
 		var parsedValue = parseFloat(value);
 		return !isNaN(parsedValue) ? (parsedValue * 100).toFixed(decimal) : "";
 	}
-	
+
 };
 
 
@@ -1055,8 +1055,8 @@ var NumberUtil = NumberUtil ||
 
 var ObjectUtil = ObjectUtil ||
 {
-	
-	
+
+
 	parse : function(value)
 	{
 		var object = null;
@@ -1073,12 +1073,12 @@ var ObjectUtil = ObjectUtil ||
 		}
 		catch(e)
 		{
-			
+
 		}
 		return isObject(object) ? object : {};
 	},
-	
-	
+
+
 	find : function(object, path)
 	{
 		var paths = path.split(".");
@@ -1096,8 +1096,8 @@ var ObjectUtil = ObjectUtil ||
 		}
 		return object;
 	},
-	
-	
+
+
 	equals : function(object1, object2)
 	{
 		var equals = false;
@@ -1119,8 +1119,8 @@ var ObjectUtil = ObjectUtil ||
 		}
 		return equals;
 	}
-	
-	
+
+
 };
 
 
@@ -1129,26 +1129,26 @@ var ObjectUtil = ObjectUtil ||
 
 var StringUtil = StringUtil ||
 {
-	
-	
+
+
 	padNumber : function(value, length)
 	{
 		return this.pad(new String(value), length, "0", true);
 	},
-	
-	
+
+
 	padLeft : function(value, length, character)
 	{
 		return this.pad(value, length, character, true);
 	},
-	
-	
+
+
 	padRight : function(value, length, character)
 	{
 		return this.pad(value, length, character, false);
 	},
-	
-	
+
+
 	pad : function(value, length, character, left)
 	{
 		if(!isSet(value))
@@ -1166,8 +1166,8 @@ var StringUtil = StringUtil ||
 			return value;
 		}
 	},
-	
-	
+
+
 	repeat : function(value, length)
 	{
 		var repeated = "";
@@ -1177,8 +1177,8 @@ var StringUtil = StringUtil ||
 		}
 		return repeated;
 	},
-	
-	
+
+
 	equals : function(value1, value2, caseInsensitive)
 	{
 		caseInsensitive = isSet(caseInsensitive) ? caseInsensitive : true;
@@ -1189,14 +1189,14 @@ var StringUtil = StringUtil ||
 		}
 		return equals;
 	},
-	
-	
+
+
 	capitalize : function(value)
 	{
 		return isValidString(value) ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 	},
-	
-	
+
+
 	camelCase : function(value)
 	{
 		value = this.capitalize(value);
@@ -1211,21 +1211,21 @@ var StringUtil = StringUtil ||
 		});
 		return value;
 	},
-	
-	
+
+
 	stripHtml : function(value)
 	{
 		return value.replace(/<\/?[^>]+(>|$)/g, "");
 	},
-	
-	
+
+
 	startsWith : function(value, pattern)
 	{
 		return isSet(value) ? new RegExp("^" + pattern).test(value) : false;
 	}
-	
+
 };
 
 
 
-roth.lib.js.version = "2.0.0-SNAPSHOT";
+roth.lib.js.version = "3.0.0-SNAPSHOT";

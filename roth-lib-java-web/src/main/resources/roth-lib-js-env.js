@@ -447,4 +447,4 @@ var getDependenciesString = getDependenciesString || function()
 
 
 
-roth.lib.js.env.version = "2.0.0-SNAPSHOT";
+roth.lib.js.env.version = "3.0.0-SNAPSHOT";
