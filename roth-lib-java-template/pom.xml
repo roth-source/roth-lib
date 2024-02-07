@@ -13,5 +13,11 @@
 			<artifactId>roth-lib-java</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.openjdk.nashorn/nashorn-core -->
+		<dependency>
+			<groupId>org.openjdk.nashorn</groupId>
+			<artifactId>nashorn-core</artifactId>
+			<version>15.4</version>
+		</dependency>
 	</dependencies>
 </project>
