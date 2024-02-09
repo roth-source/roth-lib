@@ -1,5 +1,6 @@
-<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
     <mirrors>
         <mirror>
             <id>maven-default-http-blocker</id>
@@ -8,4 +9,26 @@
             <url>http://0.0.0.0/</url>
         </mirror>
     </mirrors>
+    <servers>
+        <server>
+            <id>roth-lib</id>
+            <username>aws</username>
+            <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
+        </server>
+    </servers>
+
+    <profiles>
+        <profile>
+            <id>aptexx-roth-lib</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>roth-lib</id>
+                    <url>https://aptexx-891376916128.d.codeartifact.us-west-2.amazonaws.com/maven/roth-lib/</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
 </settings>

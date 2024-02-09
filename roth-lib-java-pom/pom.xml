@@ -137,10 +137,17 @@
 			</extension>
 		</extensions>
 	</build>
-	<distributionManagement>
+	<!-- <distributionManagement>
 		<repository>
 			<id>roth-dist</id>
 			<url>scp://framework.aptx.cm/opt/nginx/home/</url>
+		</repository>
+	</distributionManagement> -->
+
+	<distributionManagement>
+		<repository>
+			<id>roth-lib</id>
+			<url>https://aptexx-891376916128.d.codeartifact.us-west-2.amazonaws.com/maven/roth-lib/</url>
 		</repository>
 	</distributionManagement>
 </project>
