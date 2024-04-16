@@ -1228,4 +1228,4 @@ var StringUtil = StringUtil ||
 
 
 
-roth.lib.js.version = "3.0.0-SNAPSHOT";
+roth.lib.js.version = "3.0.1-SNAPSHOT";
