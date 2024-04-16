@@ -10,6 +10,7 @@ public abstract class Join extends Sql
 	protected Select select;
 	protected String table;
 	protected String alias;
+	protected String index;
 	protected List<On> ons = new List<On>();
 	
 	protected Join()
@@ -46,7 +47,13 @@ public abstract class Join extends Sql
 		this.alias = alias;
 		return this;
 	}
-	
+
+	public Join setIndex(String index)
+	{
+		this.index = index;
+		return this;
+	}
+
 	public Join setOns(List<On> ons)
 	{
 		this.ons = ons;
@@ -104,6 +111,10 @@ public abstract class Join extends Sql
 			{
 				builder.append(AS);
 				builder.append(tick(alias));
+			}
+			if(index != null)
+			{
+				builder.append(index);
 			}
 			builder.append(ON);
 			builder.append(list(ons, AND));

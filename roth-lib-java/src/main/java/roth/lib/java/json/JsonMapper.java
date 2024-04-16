@@ -216,7 +216,7 @@ public class JsonMapper extends Mapper
 						seperator = writeSeperator(writer, seperator);
 						writeNewLine(writer);
 						writePropertyName(writer, name);
-						writeValue(writer, serializedValue, escapable);
+						writeValue(writer, serializedValue, escapable, propertyReflector);
 					}
 					else if(getMapperConfig().isSerializeNulls())
 					{
@@ -320,7 +320,7 @@ public class JsonMapper extends Mapper
 							incrementTabs();
 							seperator = writeSeperator(writer, seperator);
 							writeNewLine(writer);
-							writeValue(writer, serializedValue, escapable);
+							writeValue(writer, serializedValue, escapable, propertyReflector);
 							decrementTabs();
 						}
 						else if(getMapperConfig().isSerializeNulls())
@@ -388,8 +388,13 @@ public class JsonMapper extends Mapper
 		return BLANK.equals(seperator) ? String.valueOf(COMMA) : seperator;
 	}
 	
-	protected void writeValue(Writer writer, String value, boolean escapable) throws IOException
+	protected void writeValue(Writer writer, String value, boolean escapable, PropertyReflector propertyReflector) throws IOException
 	{
+		if(value != null && propertyReflector != null && propertyReflector.hasTrimLength() && value.length() > propertyReflector.getProperty().trimLength())
+		{
+			value = value.substring(0, propertyReflector.getProperty().trimLength());
+		}
+
 		if(value == null)
 		{
 			writer.write(NULL_LITERAL);

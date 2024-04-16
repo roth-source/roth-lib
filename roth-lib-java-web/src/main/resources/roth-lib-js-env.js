@@ -361,16 +361,36 @@ var checkSecure = checkSecure || function()
 {
 	if(!isDev() && isHttpProtocol())
 	{
-		var url = Protocol.HTTPS + "//";
-		url += window.location.host;
-		url += (window.location.port ? ":" + window.location.port : "");
-		url += window.location.pathname;
-		url += window.location.search;
-		url += window.location.hash;
-		window.location.replace(url);
+		location.protocol = "https:";
 	}
 };
 
+var readMobileParams = readMobileParams || function()
+{
+	if(urlParam("isMobile") === "true")
+	{
+		var session = urlParam("session");
+		var token = urlParam("csrfToken");
+		if(isSet(session) && isSet(token))
+		{
+			localStorage.setItem("session", session);
+			localStorage.setItem("csrfToken", token);
+		}
+	}
+};
+
+var urlParam = function(name){
+	var url = new URL(window.location.href);
+	var results= url.searchParams.get(name);
+	if(!isNull(results))
+	{
+		return results;
+	}
+	else
+	{
+		return false;
+	}
+};
 
 var loadCssCompiledDependencies = loadCssCompiledDependencies || function(app)
 {
@@ -427,4 +447,4 @@ var getDependenciesString = getDependenciesString || function()
 
 
 
-roth.lib.js.env.version = "2.0.0-SNAPSHOT";
+roth.lib.js.env.version = "3.0.0-SNAPSHOT";

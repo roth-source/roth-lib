@@ -179,7 +179,7 @@ public class XmlMapper extends Mapper
 							String serializedValue = serializer.serialize(xmlValue.getValue(), timeZone, timeFormat);
 							if(serializedValue != null)
 							{
-								writeValue(writer, serializedValue);
+								writeValue(writer, serializedValue, propertyReflector);
 							}
 						}
 						writeCloseTag(writer, name);
@@ -256,7 +256,7 @@ public class XmlMapper extends Mapper
 					{
 						writeNewLine(writer);
 						writeOpenTag(writer, name);
-						writeValue(writer, serializedValue);
+						writeValue(writer, serializedValue, propertyReflector);
 						writeCloseTag(writer, name);
 					}
 					else if(getMapperConfig().isSerializeNulls())
@@ -299,7 +299,7 @@ public class XmlMapper extends Mapper
 				writer.write(attributeEntry.getKey());
 				writer.write(EQUAL);
 				writer.write(QUOTE);
-				writeValue(writer, attributeEntry.getValue());
+				writeValue(writer, attributeEntry.getValue(), null);
 				writer.write(QUOTE);
 			}
 		}
@@ -366,10 +366,14 @@ public class XmlMapper extends Mapper
 		}
 	}
 	
-	protected void writeValue(Writer writer, String value) throws IOException
+	protected void writeValue(Writer writer, String value, PropertyReflector propertyReflector) throws IOException
 	{
 		if(value != null)
 		{
+			if(propertyReflector != null && propertyReflector.hasTrimLength() && value.length() > propertyReflector.getProperty().trimLength())
+			{
+				value = value.substring(0, propertyReflector.getProperty().trimLength());
+			}
 			StringReader reader = new StringReader(value);
 			int b;
 			char c;

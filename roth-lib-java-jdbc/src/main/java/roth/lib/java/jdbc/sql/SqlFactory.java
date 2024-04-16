@@ -37,10 +37,12 @@ public interface SqlFactory
 	String SET				= "    SET ";
 	String DELETE 			= " DELETE ";
 	String UNION_ALL 		= "  UNION ALL ";
+	String UNION 		    = "  UNION ";
 	String EXISTS 			= "EXISTS ";
 	String EXISTS_SQL 		= EXISTS + "(\n%s\n   )";
 	String NOT_EXISTS 		= "NOT EXISTS ";
 	String NOT_EXISTS_SQL 	= NOT_EXISTS + "(\n%s\n   )";
+	String USE_INDEX		= " USE INDEX "+ "(%s)";
 	
 	String OP_EQ			= " = ?";
 	String OP_NE			= " != ?";

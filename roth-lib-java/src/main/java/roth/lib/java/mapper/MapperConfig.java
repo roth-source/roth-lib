@@ -16,6 +16,7 @@ public class MapperConfig implements Characters
 	protected boolean serializeNulls = false;
 	protected boolean serializeEmptyArray = true;
 	protected boolean serializeEmptyMap = true;
+	protected boolean escapeSerializedValue = true;
 	protected boolean tableHeader = true;
 	protected boolean tableTrim = true;
 	protected boolean deserializeColumnOrder = true;
@@ -59,6 +60,11 @@ public class MapperConfig implements Characters
 	public boolean isSerializeEmptyMap()
 	{
 		return serializeEmptyMap;
+	}
+	
+	public boolean isEscapeSerializedValue()
+	{
+		return escapeSerializedValue;
 	}
 	
 	public boolean isTableHeader()
@@ -140,6 +146,12 @@ public class MapperConfig implements Characters
 	public MapperConfig setSerializeEmptyArray(boolean serializeEmptyArray)
 	{
 		this.serializeEmptyArray = serializeEmptyArray;
+		return this;
+	}
+	
+	public MapperConfig setEscapeSerializedValue(boolean escapeSerializedValue)
+	{
+		this.escapeSerializedValue = escapeSerializedValue;
 		return this;
 	}
 	

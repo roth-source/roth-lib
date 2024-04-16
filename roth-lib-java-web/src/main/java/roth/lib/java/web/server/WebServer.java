@@ -1,6 +1,7 @@
 package roth.lib.java.web.server;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class WebServer
 	protected String keyStorePassword = "localhost";
 	protected String keyManagerPassword = "localhost";
 	protected Server server;
-	protected SslContextFactory sslContextFactory;
+	protected SslContextFactory.Server sslContextFactory;
 	protected HttpConfiguration httpsConfig;
 	protected ServerConnector serverConnector;
 	protected WebAppContext webAppContext;
@@ -225,7 +226,7 @@ public class WebServer
 				webInfDir = new File(webAppDir, WEB_INF);
 			}
 			server = new Server();
-			sslContextFactory = new SslContextFactory();
+			sslContextFactory = new SslContextFactory.Server();
 			sslContextFactory.setKeyStorePath(keyStorePath);
 			sslContextFactory.setKeyStorePassword(keyStorePassword);
 			sslContextFactory.setKeyManagerPassword(keyManagerPassword);
@@ -233,28 +234,19 @@ public class WebServer
 			httpsConfig.setSecureScheme("https");
 			httpsConfig.addCustomizer(new SecureRequestCustomizer());
 			httpsConfig.setSecurePort(port);
+			
 			serverConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(httpsConfig));
 			serverConnector.setPort(port);
 			webAppContext = new WebAppContext();
 			scanner = new Scanner();
-			scanListener = new Scanner.BulkListener()
-			{
-				@Override
-				public void filesChanged(List<String> filenames) throws Exception
-				{
-					if(webAppContext.isRunning())
-					{
-						webAppContext.stop();
-						webAppContext.start();
-					}
-				}
-			};
 			server.setConnectors(new Connector[]{serverConnector});
 			webAppContext.setWar(webAppDir.getAbsolutePath());
 			webAppContext.setContextPath(contextPath);
 			server.setHandler(webAppContext);
 			scanner.setScanInterval(scanInterval);
-			scanner.addScanDir(webInfDir);
+			java.util.List<File> directories = new ArrayList<File>();
+			directories.add(webInfDir);
+			scanner.setScanDirs(directories);
 			scanner.addListener(scanListener);
 			scanner.start();
 			server.start();

@@ -13,6 +13,7 @@ public class SshConfig
 	protected String username;
 	protected String password;
 	protected String key;
+	protected int timeout;
 	protected Map<String, String> config = new Map<String, String>();
 	
 	public SshConfig(String host)
@@ -64,6 +65,11 @@ public class SshConfig
 		return config;
 	}
 	
+	public int getTimeout()
+	{
+		return timeout;
+	}
+	
 	public SshConfig setHost(String host)
 	{
 		this.host = host;
@@ -97,6 +103,12 @@ public class SshConfig
 	public SshConfig setConfig(Map<String, String> config)
 	{
 		this.config = config;
+		return this;
+	}
+	
+	public SshConfig setTimeout(int timeout)
+	{
+		this.timeout = timeout;
 		return this;
 	}
 	

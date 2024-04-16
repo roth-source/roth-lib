@@ -14,7 +14,7 @@ public class Time implements Serializable, Comparable<Time>, Cloneable
 	
 	static
 	{
-		// FIND LIST AT
+		// FIND LIST AT (BANK Holiday's observed)
 		// http://www.federalreserve.gov/aboutthefed/k8.htm
 		
 		// 2015 Holidays
@@ -76,6 +76,148 @@ public class Time implements Serializable, Comparable<Time>, Cloneable
 		HOLIDAYS.add(new Day(2019, 11, 11)); // Veterans Day
 		HOLIDAYS.add(new Day(2019, 11, 28)); // Thanksgiving Day
 		HOLIDAYS.add(new Day(2019, 12, 25)); // Christmas Day
+		
+		// 2020 Holidays
+		HOLIDAYS.add(new Day(2020,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2020,  1, 20)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2020,  2, 17)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2020,  5, 25)); // Memorial Day
+		HOLIDAYS.add(new Day(2020,  7,  3)); // Independence Day
+		HOLIDAYS.add(new Day(2020,  9,  7)); // Labor Day
+		HOLIDAYS.add(new Day(2020, 10, 12)); // Columbus Day
+		HOLIDAYS.add(new Day(2020, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2020, 11, 26)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2020, 12, 25)); // Christmas Day
+
+		// 2021 Holidays
+		HOLIDAYS.add(new Day(2021,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2021,  1, 18)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2021,  2, 15)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2021,  5, 31)); // Memorial Day
+		HOLIDAYS.add(new Day(2021,  7,  5)); // Independence Day
+		HOLIDAYS.add(new Day(2021,  9,  6)); // Labor Day
+		HOLIDAYS.add(new Day(2021, 10, 11)); // Columbus Day
+		HOLIDAYS.add(new Day(2021, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2021, 11, 25)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2021, 12, 24)); // Christmas Day
+
+		// 2022 Holidays
+		HOLIDAYS.add(new Day(2021,  12,  31)); // New Year's Day
+		HOLIDAYS.add(new Day(2022,  1, 17)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2022,  2, 21)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2022,  5, 30)); // Memorial Day
+		HOLIDAYS.add(new Day(2022,  6, 20)); // Juneteenth
+		HOLIDAYS.add(new Day(2022,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2022,  9,  5)); // Labor Day
+		HOLIDAYS.add(new Day(2022, 10, 10)); // Columbus Day
+		HOLIDAYS.add(new Day(2022, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2022, 11, 24)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2022, 12, 26)); // Christmas Day
+
+		// 2023 Holidays
+		HOLIDAYS.add(new Day(2023,  1,  2)); // New Year's Day
+		HOLIDAYS.add(new Day(2023,  1, 16)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2023,  2, 20)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2023,  5, 29)); // Memorial Day
+		HOLIDAYS.add(new Day(2023,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2023,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2023,  9,  4)); // Labor Day
+		HOLIDAYS.add(new Day(2023, 10, 9)); // Columbus Day
+		HOLIDAYS.add(new Day(2023, 11, 10)); // Veterans Day
+		HOLIDAYS.add(new Day(2023, 11, 23)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2023, 12, 25)); // Christmas Day
+
+		// 2024 Holidays
+		HOLIDAYS.add(new Day(2024,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2024,  1, 15)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2024,  2, 19)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2024,  5, 27)); // Memorial Day
+		HOLIDAYS.add(new Day(2024,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2024,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2024,  9,  2)); // Labor Day
+		HOLIDAYS.add(new Day(2024, 10, 14)); // Columbus Day
+		HOLIDAYS.add(new Day(2024, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2024, 11, 28)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2024, 12, 25)); // Christmas Day
+
+		// 2025 Holidays
+		HOLIDAYS.add(new Day(2025,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2025,  1, 20)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2025,  2, 17)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2025,  5, 26)); // Memorial Day
+		HOLIDAYS.add(new Day(2025,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2025,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2025,  9,  1)); // Labor Day
+		HOLIDAYS.add(new Day(2025, 10, 13)); // Columbus Day
+		HOLIDAYS.add(new Day(2025, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2025, 11, 27)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2025, 12, 25)); // Christmas Day
+
+		// 2026 Holidays
+		HOLIDAYS.add(new Day(2026,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2026,  1, 19)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2026,  2, 16)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2026,  5, 25)); // Memorial Day
+		HOLIDAYS.add(new Day(2026,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2026,  7,  3)); // Independence Day
+		HOLIDAYS.add(new Day(2026,  9,  7)); // Labor Day
+		HOLIDAYS.add(new Day(2026, 10, 12)); // Columbus Day
+		HOLIDAYS.add(new Day(2026, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2026, 11, 26)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2026, 12, 25)); // Christmas Day
+
+		// 2027 Holidays
+		HOLIDAYS.add(new Day(2027,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2027,  1, 18)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2027,  2, 15)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2027,  5, 31)); // Memorial Day
+		HOLIDAYS.add(new Day(2027,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2027,  7,  5)); // Independence Day
+		HOLIDAYS.add(new Day(2027,  9,  6)); // Labor Day
+		HOLIDAYS.add(new Day(2027, 10, 11)); // Columbus Day
+		HOLIDAYS.add(new Day(2027, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2027, 11, 25)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2027, 12, 24)); // Christmas Day
+
+		// 2028 Holidays
+		HOLIDAYS.add(new Day(2027,  12,  31)); // New Year's Day
+		HOLIDAYS.add(new Day(2028,  1, 17)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2028,  2, 21)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2028,  5, 29)); // Memorial Day
+		HOLIDAYS.add(new Day(2028,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2028,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2028,  9,  4)); // Labor Day
+		HOLIDAYS.add(new Day(2028, 10, 9)); // Columbus Day
+		HOLIDAYS.add(new Day(2028, 11, 10)); // Veterans Day
+		HOLIDAYS.add(new Day(2028, 11, 23)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2028, 12, 25)); // Christmas Day
+
+		// 2029 Holidays
+		HOLIDAYS.add(new Day(2029,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2029,  1, 15)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2029,  2, 19)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2029,  5, 28)); // Memorial Day
+		HOLIDAYS.add(new Day(2029,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2029,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2029,  9,  3)); // Labor Day
+		HOLIDAYS.add(new Day(2029, 10, 8)); // Columbus Day
+		HOLIDAYS.add(new Day(2029, 11, 12)); // Veterans Day
+		HOLIDAYS.add(new Day(2029, 11, 22)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2029, 12, 25)); // Christmas Day
+
+		// 2030 Holidays
+		HOLIDAYS.add(new Day(2030,  1,  1)); // New Year's Day
+		HOLIDAYS.add(new Day(2030,  1, 21)); // Martin Luther King, Jr. Day
+		HOLIDAYS.add(new Day(2030,  2, 18)); // Washington's Birthday
+		HOLIDAYS.add(new Day(2030,  5, 27)); // Memorial Day
+		HOLIDAYS.add(new Day(2030,  6, 19)); // Juneteenth
+		HOLIDAYS.add(new Day(2030,  7,  4)); // Independence Day
+		HOLIDAYS.add(new Day(2030,  9,  2)); // Labor Day
+		HOLIDAYS.add(new Day(2030, 10, 14)); // Columbus Day
+		HOLIDAYS.add(new Day(2030, 11, 11)); // Veterans Day
+		HOLIDAYS.add(new Day(2030, 11, 28)); // Thanksgiving Day
+		HOLIDAYS.add(new Day(2030, 12, 25)); // Christmas Day
+
 	}
 	
 	protected Calendar calendar;

@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.net.InternetDomainName;
+
 import roth.lib.java.Characters;
 import roth.lib.java.form.FormMapper;
 import roth.lib.java.form.MultipartFormMapper;
@@ -42,6 +44,7 @@ import roth.lib.java.type.MimeType;
 import roth.lib.java.util.EnumUtil;
 import roth.lib.java.util.IoUtil;
 import roth.lib.java.util.ReflectionUtil;
+import roth.lib.java.util.UrlUtil;
 import roth.lib.java.validate.Validator;
 import roth.lib.java.validate.ValidatorException;
 
@@ -54,11 +57,14 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 	protected static String ACCESS_CONTROL_ALLOW_ORIGIN 			= "Access-Control-Allow-Origin";
 	protected static String ACCESS_CONTROL_ALLOW_CREDENTIALS 		= "Access-Control-Allow-Credentials";
 	protected static String ACCESS_CONTROL_ALLOW_METHODS 			= "Access-Control-Allow-Methods";
-	protected static String ACCESS_CONTROL_EXPOSE_HEADERS 		= "Access-Control-Expose-Headers";
-	protected static String CONTENT_TYPE_PARAM	 				= "contentType";
+	protected static String CONTENT_SECURITY_POLICY 				= "Content-Security-Policy";
+	protected static String ACCESS_CONTROL_EXPOSE_HEADERS 		    = "Access-Control-Expose-Headers";
+	protected static String STRICT_TRANSPORT_SECURITY			    = "Strict-Transport-Security";
+	protected static String DEFAULT_SOURCE_SELF                     ="default-src 'self' ";
+	protected static String CONTENT_TYPE_PARAM	 					= "contentType";
 	protected static String CONTENT_TYPE_HEADER 					= "Content-Type";
 	protected static String ACCEPT_PARAM		 					= "accept";
-	protected static String ACCEPT_HEADER		 				= "Accept";
+	protected static String ACCEPT_HEADER		 					= "Accept";
 	protected static String ALLOWED_METHODS 						= "GET, POST";
 	protected static List<HttpMethod> SUPPORTED_METHODS			= List.fromArray(HttpMethod.GET, HttpMethod.POST);
 	protected static List<String> LOCALHOSTS 					= List.fromArray("localhost", "127.0.0.1");
@@ -122,15 +128,20 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 				String origin = request.getHeader(ORIGIN);
 				if(origin != null)
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, UrlUtil.sanitizeUrl(origin));
+					if(restrictSecurityOrigin())
+					{
+						response.setHeader(CONTENT_SECURITY_POLICY, dev ? UrlUtil.sanitizeUrl(origin) : getContentSecurityOrigins(UrlUtil.sanitizeUrl(origin)));
+					}
 					response.setHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
 				}
 				else
 				{
-					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, ANY);
+					response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, dev ? ANY : getSecurityHost(request));
 				}
 				response.setHeader(ACCESS_CONTROL_ALLOW_METHODS, ALLOWED_METHODS);
 				response.setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, EXPOSED_HEADERS.toString());
+				response.setHeader(STRICT_TRANSPORT_SECURITY, "max-age=31536000; includeSubDomains");
 				HttpMethod httpMethod = HttpMethod.fromString(request.getMethod());
 				if(httpMethod != null)
 				{
@@ -381,6 +392,44 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 		}
 	}
 	
+	protected boolean restrictSecurityOrigin()
+	{
+		return true;
+	}
+	
+	protected String getContentSecurityOrigins(String origin) 
+	{
+		try
+		{
+			InternetDomainName idn = InternetDomainName.from(removeProtocol(origin)).topPrivateDomain();
+			if(idn != null)
+			{
+				return DEFAULT_SOURCE_SELF + idn.toString() + " *." + idn.toString() + getDefaultOrigins();
+			}
+		}
+		catch (Exception ex)
+		{
+			
+		}
+		return DEFAULT_SOURCE_SELF + removeProtocol(origin) + getDefaultOrigins();
+	}
+	
+	private String removeProtocol(String origin)
+	{
+		if(origin == null)
+		{
+			return null;
+		}
+		return origin.replace("https://", "").replaceAll("[\\r\\n]", "");
+	}
+	
+	public String getDefaultOrigins()
+	{
+		return "";
+	}
+	
+	public abstract String getSecurityHost(HttpServletRequest request);
+
 	public abstract void exception(HttpServletRequest request, HttpServletResponse response, Throwable e);
 	
 	protected Object endpoint(HttpServletRequest request, HttpServletResponse response, String methodName)
@@ -697,7 +746,15 @@ public abstract class HttpEndpoint extends HttpServlet implements Characters
 			builder.append(QUESTION);
 			builder.append(request.getQueryString());
 		}
+		
 		builder.append(NEW_LINE);
+		if(request.getScheme() != null)
+		{
+			builder.append("PROTOCOL");
+			builder.append(": ");
+			builder.append(request.getScheme().toUpperCase());
+			builder.append(NEW_LINE);
+		}
 		Enumeration<String> names = request.getHeaderNames();
 		while(names.hasMoreElements())
 		{

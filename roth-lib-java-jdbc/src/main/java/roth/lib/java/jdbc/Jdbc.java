@@ -1,5 +1,6 @@
 package roth.lib.java.jdbc;
 
+import java.beans.PropertyVetoException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -8,7 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Driver;
+import java.sql.Connection;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -17,10 +18,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
 import javax.sql.DataSource;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import roth.lib.java.Callback;
 import roth.lib.java.Characters;
@@ -47,24 +49,30 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 {
 	protected MapperType mapperType;
 	protected MapperReflector mapperReflector;
-	protected JdbcDriver driver;
+	protected String driver;
 	protected String url;
 	protected String username;
 	protected String password;
+	protected String testConnectionString;
 	protected Properties properties;
 	protected int maxConnections = 20;
+	protected int minConnections = 5;
+	protected int acquireIncrement = 5;
+	protected int maxIdleTime = 0;
+	protected int maxIdleTimeExcessConnections = 0;
+
 	protected int loginTimeout = 60;
 	protected int deadLockRetries = 3;
+	protected static final int MAX_INSERT_RETRIES = 3;
 	protected PrintWriter logWriter;
-	protected ConcurrentLinkedDeque<JdbcConnection> availableConnections = new ConcurrentLinkedDeque<JdbcConnection>();
-	protected ConcurrentLinkedDeque<JdbcConnection> usedConnections = new ConcurrentLinkedDeque<JdbcConnection>();
+	protected ComboPooledDataSource connectionPool = null;
+	protected Object synchObjectPool = new Object();
 	protected JdbcCloseHandler closeHandler = new JdbcCloseHandler()
 	{
 		@Override
-		public void close(JdbcConnection connection)
+		public void close(JdbcConnection connection) throws SQLException
 		{
-			usedConnections.remove(connection);
-			availableConnections.add(connection);
+			connection.connection.close();
 		}
 	};
 	
@@ -101,11 +109,18 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		this.mapperType = mapperType;
 		init(driver, url, username, password);
 	}
+
+	public Jdbc(MapperType mapperType, String driver, String url, String username, String password, String testConnectionString)
+	{
+		this.mapperType = mapperType;
+		init(driver, url, username, password, testConnectionString);
+	}
 	
+
 	public Jdbc(MapperType mapperType, String driver, String url, String username, String password, Properties properties)
 	{
 		this.mapperType = mapperType;
-		init(driver, url, username, password, properties);
+		init(driver, url, username, password, null ,properties);
 	}
 	
 	protected void init(String driver, String url)
@@ -115,21 +130,27 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	
 	protected void init(String driver, String url, Properties properties)
 	{
-		init(driver, url, null, null, properties);
+		init(driver, url, null, null, null, properties);
 	}
 	
 	protected void init(String driver, String url, String username, String password)
 	{
-		init(driver, url, username, password, new Properties());
+		init(driver, url, username, password, null, new Properties());
 	}
-	
-	protected void init(String driver, String url, String username, String password, Properties properties)
+
+	protected void init(String driver, String url, String username, String password, String testConnectionString)
 	{
-		this.driver = createDriver(driver);
+		init(driver, url, username, password, testConnectionString, new Properties());
+	}
+
+	protected void init(String driver, String url, String username, String password, String testConnectionString, Properties properties)
+	{
+		this.driver = driver;
 		this.url = url;
 		this.username = username;
 		this.password = password;
 		this.properties = properties;
+		this.testConnectionString = testConnectionString;
 		this.mapperReflector = MapperReflector.get();
 	}
 	
@@ -145,32 +166,31 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		return mapperReflector;
 	}
 	
-	public JdbcDriver createDriver(String driverName)
-	{
-		try
-		{
-			Class<?> driverClass = Class.forName(driverName);
-			Object driver = driverClass.newInstance();
-			if(driver instanceof Driver)
-			{
-				return wrap((Driver) driver);
-			}
-			else
-			{
-				throw new IllegalArgumentException(driverName + " is not instance of Driver class");
-			}
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException(e);
-		}
-	}
-	
 	public void setMaxConnections(int maxConnections)
 	{
 		this.maxConnections = maxConnections;
 	}
 	
+	public void setMinPoolSize(int minPoolsize)
+	{
+		this.minConnections = minPoolsize;
+	}
+
+	public void setAcquireIncrement(int acquireIncrement)
+	{
+		this.acquireIncrement = acquireIncrement;
+	}
+	
+	public void setMaxIdleTime(int maxIdleTime)
+	{
+		this.maxIdleTime = maxIdleTime;
+	}
+
+	public void setMaxIdleTimeExcessConnections(int maxIdleTimeExcessConnections)
+	{
+		this.maxIdleTimeExcessConnections = maxIdleTimeExcessConnections;
+	}
+
 	public void setDeadLockRetries(int deadLockRetries)
 	{
 		this.deadLockRetries = deadLockRetries;
@@ -185,75 +205,55 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	@Override
 	public JdbcConnection getConnection(String username, String password) throws SQLException
 	{
-		JdbcConnection connection = getAvailableConnection();
-		if(connection == null)
+		if (connectionPool == null)
 		{
-			if(usedConnections.size() < maxConnections)
+			synchronized(synchObjectPool)
 			{
-				connection = createConnection(username, password);
-			}
-			long start = System.currentTimeMillis();
-			long timeout = loginTimeout * 1000;
-			while(connection == null && System.currentTimeMillis() - start < timeout)
-			{
-				try
+				if (connectionPool == null)
 				{
-					Thread.sleep(500);
-					connection = getAvailableConnection();
-				} 
-				catch(InterruptedException e)
-				{
-					throw new SQLException(e);
+					try
+					{
+						connectionPool = new ComboPooledDataSource();
+						connectionPool.setDriverClass( this.driver );           
+						connectionPool.setJdbcUrl( this.url );
+						connectionPool.setUser(username);                                  
+						connectionPool.setPassword(password);                                  
+						connectionPool.setMinPoolSize(this.minConnections);   
+						connectionPool.setInitialPoolSize(this.minConnections);
+						connectionPool.setAcquireIncrement(this.acquireIncrement);
+						if(this.maxIdleTime > 0)
+						{
+							connectionPool.setMaxIdleTime(this.maxIdleTime);
+						}
+						if(this.maxIdleTimeExcessConnections > 0)
+						{
+							connectionPool.setMaxIdleTimeExcessConnections(this.maxIdleTimeExcessConnections);
+						}
+						connectionPool.setTestConnectionOnCheckout(true);
+						if(this.testConnectionString != null)
+						{
+							connectionPool.setPreferredTestQuery(testConnectionString);
+						}
+						connectionPool.setMaxPoolSize(this.maxConnections);
+						connectionPool.setCheckoutTimeout(loginTimeout*1000);
+						//connectionPool.setConnectionCustomizerClassName(JdbcConnectionCustomizer.class.getName());
+					}
+					catch(PropertyVetoException pvx)
+					{
+						throw new SQLException(pvx);
+					}
 				}
 			}
-			if(connection == null)
-			{
-				throw new SQLException(String.format("could not get connection within timeout of %d seconds", loginTimeout));
-			}
 		}
-		return connection;
-	}
-	
-	protected JdbcConnection getAvailableConnection()
-	{
-		JdbcConnection connection = null;
-		while((connection = availableConnections.poll()) != null)
+		Connection conn = connectionPool.getConnection();
+		if (conn != null)
 		{
-			try
-			{
-				if(connection.isValid(loginTimeout))
-				{
-					usedConnections.add(connection);
-					break;
-				}
-				else
-				{
-					connection.closeWrapped();
-				}
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
+			JdbcConnection jdbcConnection =  wrap(conn);
+			jdbcConnection.setCloseHandler(closeHandler);
+			jdbcConnection.setAutoCommit(false);
+			return jdbcConnection;
 		}
-		return connection;
-	}
-	
-	protected JdbcConnection createConnection(String username, String password) throws SQLException
-	{
-		if(username != null)
-		{
-			properties.put("user", username);
-		}
-		if(password != null)
-		{
-			properties.put("password", password);
-		}
-		JdbcConnection connection = wrap(driver.connect(url, properties));
-		connection.setCloseHandler(closeHandler);
-		connection.setAutoCommit(false);
-		usedConnections.add(connection);
-		return connection;
+		throw new SQLException(String.format("could not get connection within timeout of %d seconds", loginTimeout));
 	}
 	
 	@Override
@@ -342,7 +342,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 						}
 						catch(Exception e)
 						{
-							e.printStackTrace();
+							throw new JdbcException(e.getMessage());
 						}
 					}
 				}
@@ -350,7 +350,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 	}
 
@@ -397,7 +397,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				throw new JdbcException(e.getMessage());
 			}
 		}
 		return wheres;
@@ -429,7 +429,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				throw new JdbcException(e.getMessage());
 			}
 		}
 		if(!nameValues.isEmpty())
@@ -459,7 +459,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 					}
 					catch(Exception e)
 					{
-						e.printStackTrace();
+						throw new JdbcException(e.getMessage());
 					}
 				}
 			}
@@ -481,6 +481,66 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			return newDelete().setTable(entityReflector.getEntityName()).wheres(wheres);
 		}
 		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> void fromDbWithPause(JdbcResultSet resultSet, Callback<T> callback, int pauseCount, long delayInMilliseconds)
+	{
+		try
+		{
+			Class<T> klass = callback.getKlass();
+			ResultSetMetaData metaData = resultSet.getMetaData();
+			EntityReflector entityReflector = getMapperReflector().getEntityReflector(klass);
+			int count = 0;
+			if(entityReflector != null)
+			{
+				while(resultSet.next())
+				{
+					T model = fromDb(resultSet, klass, metaData, entityReflector);
+					if(model != null)
+					{
+						callback.call(model);
+						count++;
+					}
+					if(count % pauseCount == 0)
+					{
+						try
+						{
+							Thread.sleep(delayInMilliseconds);
+						}
+						catch(Exception ex)
+						{
+						}
+					}
+				}
+			}
+			else
+			{
+				while(resultSet.next())
+				{
+					Object value = resultSet.getValue(1, klass);
+					if(value != null && value.getClass().isAssignableFrom(klass))
+					{
+						callback.call((T) value);
+						count++;
+						if(count % pauseCount == 0)
+						{
+							try
+							{
+								Thread.sleep(delayInMilliseconds);
+							}
+							catch(Exception ex)
+							{
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			throw new JdbcException(e.getMessage());
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -516,7 +576,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 	}
 	
@@ -553,7 +613,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 		return models;
 	}
@@ -589,7 +649,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 		return model;
 	}
@@ -613,7 +673,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 				}
 				catch(Exception e)
 				{
-					e.printStackTrace();
+					throw new JdbcException(e.getMessage());
 				}
 				if(!dataMap.isEmpty())
 				{
@@ -623,7 +683,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new JdbcException(e.getMessage());
 		}
 		return dataMaps;
 	}
@@ -653,12 +713,14 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		else
 		{
 			preparedStatement = connection.prepareStatement(sql);
+			
 		}
+		preparedStatement = setValues(preparedStatement, values);
 		if(hasLogWriter() && sql != null)
 		{
 			debugSql(sql, values, preparedStatement);
 		}
-		return setValues(preparedStatement, values);
+		return preparedStatement;
 	}
 	
 	protected void debugSql(String sql, Collection<Object> values)
@@ -784,7 +846,26 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 			}
 		}
 		return preparedStatement;
+		
 	}
+	
+	public JdbcPreparedStatement setValues(String sql, JdbcPreparedStatement preparedStatement, Collection<Object> values) throws SQLException
+	{
+		if(values != null)
+		{
+			int i = 1;
+			for(Object value : values)
+			{
+				preparedStatement.setObject(i++, value);
+			}
+		}
+		if(hasLogWriter() && sql != null)
+		{
+			debugSql(sql, values, preparedStatement);
+		}
+		return preparedStatement;
+		
+	}	
 	
 	public String table(Class<?> klass)
 	{
@@ -906,7 +987,7 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	{
 		return queryAll(select.toString(), select.getValues(), klass, connection);
 	}
-	
+
 	public <T> List<T> queryAll(String sql, Class<T> klass, JdbcConnection connection) throws SQLException
 	{
 		return queryAll(sql, (Collection<Object>) null, klass, connection);
@@ -970,7 +1051,31 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	{
 		queryAll(select.toString(), select.getValues(), callback, connection);
 	}
+
+	public <T> void queryAllWithPause(Select select, Callback<T> callback, JdbcConnection connection, int pauseCount, long delayInMilliseconds) throws SQLException
+	{
+		try(JdbcPreparedStatement preparedStatement = prepareStatement(connection, select.toString(), select.getValues()))
+		{
+			try(JdbcResultSet resultSet = preparedStatement.executeQuery())
+			{
+				fromDbWithPause(resultSet, callback, pauseCount, delayInMilliseconds);
+			}
+		}
+	}
 	
+	public <T> void queryAllWithPause(Select select, Callback<T> callback, int pauseCount, long delayInMilliseconds)
+	{
+		try(JdbcConnection connection = getConnection())
+		{
+			queryAllWithPause(select, callback, connection, pauseCount, delayInMilliseconds);
+			connection.commit();
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
+		}
+	}
+
 	public <T> void queryAll(String sql, Callback<T> callback, JdbcConnection connection) throws SQLException
 	{
 		queryAll(sql, (Collection<Object>) null, callback, connection);
@@ -1201,6 +1306,9 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	protected int executeInsert(String sql, Collection<Object> values, JdbcModel model, JdbcConnection connection) throws SQLException
 	{
 		int result = 0;
+		boolean retry = true;
+		int attempt = 1;
+		
 		List<String> generatedColumns = new List<String>();
 		if(model != null)
 		{
@@ -1208,7 +1316,39 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 		}
 		try(JdbcPreparedStatement preparedStatement = prepareStatement(connection, sql, values, generatedColumns))
 		{
-			result = preparedStatement.executeUpdate();
+			while(retry)
+			{
+				result = preparedStatement.executeUpdate();
+				if(result > 0)
+				{
+					retry = false;
+				}
+				else if(attempt >= MAX_INSERT_RETRIES)
+				{
+					retry = false;
+					throw new SQLException("Insert failed, no rows inserted " + sql);
+				}
+				else
+				{
+					try
+					{
+						if(values != null && !values.isEmpty())
+						{
+							System.out.println("Retrying insert " + String.format(sql.replaceAll("\\?", "%s"), serializeValues(values)));
+						}
+						else
+						{
+							System.out.println("Retrying insert " + sql);
+						}
+						Thread.sleep(500);
+					}
+					catch(Exception ex)
+					{
+						
+					}
+				}
+				attempt++;
+			}
 			if(model != null)
 			{
 				model.persisted();
@@ -1221,6 +1361,246 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 					}
 				}
 			}
+		}
+		return result;
+	}
+
+	public int executeBulkInsert(List<? extends JdbcModel> insertObjects, int batchSize)
+	{	
+		return executeBulkInsert(insertObjects, batchSize, 0);
+		
+	}
+	
+	protected int executeBulkInsert(List<? extends JdbcModel> insertObjects, int batchSize, int attempt)
+	{
+		int result = 0;
+		try(JdbcConnection connection = getConnection())
+		{
+			try
+			{
+				result = executeBulkInsert(insertObjects, connection, batchSize);
+				connection.commit();
+			}
+			catch(SQLException e)
+			{
+				connection.rollback();
+				connection.close();
+				throw e;
+			}
+		}
+		catch(SQLException e)
+		{
+			if(isDeadLockException(e) && attempt++ < getDeadLockRetries())
+			{
+				result = executeBulkInsert(insertObjects, batchSize, attempt);
+			}
+			else
+			{
+				throw new JdbcException(e);
+			}
+		}
+		return result;
+	}	
+	
+	
+	public int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int batchSize)
+	{
+		if (insertObjects == null || insertObjects.size() == 0) {
+			return 0;
+		}
+		if (insertObjects.size() <= batchSize || batchSize == -1) 
+		{
+			return executeBulkInsert(insertObjects, connection, 0, insertObjects.size());
+		}
+		int numBatches = insertObjects.size() / batchSize;
+		int count = 0;
+		if (insertObjects.size() % batchSize > 0)
+			numBatches++;
+		for (int i = 0; i < numBatches; i++) 
+		{
+			count += executeBulkInsert(insertObjects, connection, i*batchSize, (i+1)*batchSize);
+		}
+		return count;
+	}
+
+	private int executeBulkInsert(List<? extends JdbcModel> insertObjects, JdbcConnection connection, int start, int end)
+	{
+		int results = 0;
+		if (end > insertObjects.size()) 
+		{
+			end = insertObjects.size();
+		}
+		try 
+		{
+			if (insertObjects.size() == 0) 
+			{
+				return 0;
+			}
+			JdbcModel model = insertObjects.get(start);
+			Insert insert = toInsert(model);
+			List<List<Object>> parameters = new List<List<Object>>();
+			JdbcModel insertObject;
+			for(int i = start; i < end; i++) 
+			{
+				insertObject = insertObjects.get(i);
+				if (insertObject.getClass().equals(model.getClass()) == false)
+				{
+					throw new JdbcException("All objects must be same for bulk insert");
+				}
+				
+				insertObject.preSave(connection);
+				insertObject.preInsert(connection);
+				
+				parameters.add(toInsert(insertObject).getValues());
+			}
+			String sql = toBulkValuesString(insert.getTable(), insert.getNames(), parameters);
+			if(hasLogWriter() && sql != null)
+			{
+				debugSql(sql, null);
+			}
+			
+			List<String> generatedColumns = getGeneratedColumns(model.getClass());
+			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql, generatedColumns.toArray(new String[0]));
+			results = preparedStatement.executeUpdate();
+			JdbcResultSet resultSet = preparedStatement.getGeneratedKeys();
+			JdbcModel updatedModel;
+			for(int j = start; j < end; j++) 
+			{
+				updatedModel = insertObjects.get(j);
+				updatedModel.postInsert(connection, results);
+				updatedModel.postSave(connection, results);
+				updatedModel.persisted();
+				updatedModel.resetDirty();
+				if (resultSet != null && generatedColumns.size() > 0)
+				{
+					setGeneratedFields(resultSet, generatedColumns, updatedModel);
+				}
+			}
+	
+			preparedStatement.close();
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
+		}
+
+		return results;
+	}
+	
+	public String toBulkValuesString(String table, List<String> names, List<List<Object>> bulkValues)
+	{
+		String baseParams = "(" + Sql.param(names.size()) + ")";
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append(INSERT + Sql.tick(table) + " (" + Sql.tick(names) + ")");
+		builder.append(LF + VALUES );
+		boolean firstTime = true;
+		for (List<Object> sublist : bulkValues) 
+		{
+			if (!firstTime) 
+			{
+				builder.append(", ");
+			}
+			builder.append(LF + String.format(baseParams.replaceAll("\\?", "%s"), serializeValues(sublist)));
+			firstTime = false;
+		}
+		builder.append(END);
+		return builder.toString();		
+	}	
+
+	public int executeBulkInsert(String table, String fieldName, List<? extends Object> values, int batchSize)
+	{
+		return executeBulkInsert(table, fieldName, values, batchSize, 0);
+	}
+	
+	
+	protected int executeBulkInsert(String table, String fieldName, List<? extends Object> values, int batchSize, int attempt)
+	{
+		int result = 0;
+		try(JdbcConnection connection = getConnection())
+		{
+			try
+			{
+				result = executeBulkInsert(connection, table, fieldName, values, batchSize);
+				connection.commit();
+			}
+			catch(SQLException e)
+			{
+				connection.rollback();
+				connection.close();
+				throw e;
+			}
+		}
+		catch(SQLException e)
+		{
+			if(isDeadLockException(e) && attempt++ < getDeadLockRetries())
+			{
+				result = executeBulkInsert(table, fieldName, values, batchSize, attempt);
+			}
+			else
+			{
+				throw new JdbcException(e);
+			}
+		}
+		return result;		
+	}
+	
+	public int executeBulkInsert(JdbcConnection connection, String table, String fieldName, List<? extends Object> values, int batchSize)
+	{
+		if (values == null || values.size() == 0) 
+		{
+			return 0;
+		}
+		List<String> names = new List<String>();
+		names.add(fieldName);
+
+		List<List<Object>> valueArray = new List<List<Object>>();
+		for (Object s : values)
+		{
+			List<Object> paramArray = new List<Object>();
+			paramArray.add(s);
+			valueArray.add(paramArray);
+		}
+		if (valueArray.size() <= batchSize || batchSize == -1) 
+		{
+			return executeBulkInsert(connection, table, names, valueArray);
+		}
+		int numBatches = valueArray.size() / batchSize;
+		int count = 0;
+		if (valueArray.size() % batchSize > 0)
+			numBatches++;
+		List<List<Object>> newList;
+		for (int i = 0; i < numBatches; i++) 
+		{
+			newList = new List<List<Object>>();
+			for (int j = i*batchSize; j < (i+1)*batchSize && j < valueArray.size(); j++)
+			{
+				newList.add(valueArray.get(j));
+			}
+			count += executeBulkInsert(connection, table, names, newList);
+		}
+		return count;
+		
+	}
+		
+	private int executeBulkInsert(JdbcConnection connection, String table, List<String> names, List<List<Object>> values)
+	{
+		int result = 0;
+		try 
+		{
+			String sql = toBulkValuesString(table, names, values);
+			if(hasLogWriter() && sql != null)
+			{
+				debugSql(sql, null);
+			}
+			JdbcPreparedStatement preparedStatement = connection.prepareStatement(sql);
+			result = preparedStatement.executeUpdate();
+			preparedStatement.close();
+			
+		}
+		catch(SQLException e)
+		{
+			throw new JdbcException(e);
 		}
 		return result;
 	}
@@ -1506,27 +1886,9 @@ public abstract class Jdbc implements DataSource, JdbcWrapper, Characters, SqlFa
 	
 	public void close()
 	{
-		for(JdbcConnection dbConnection : availableConnections)
+		if(this.connectionPool != null)
 		{
-			try
-			{
-				dbConnection.connection.close();
-			}
-			catch(Exception e)
-			{
-				
-			}
-		}
-		for(JdbcConnection dbConnection : usedConnections)
-		{
-			try
-			{
-				dbConnection.connection.close();
-			}
-			catch(Exception e)
-			{
-				
-			}
+			this.connectionPool.close();
 		}
 	}
 	

@@ -49,18 +49,22 @@ public class ServerClassLoader extends URLClassLoader
 	protected static LinkedList<URL> urls(File dir)
 	{
 		LinkedList<URL> urls = new LinkedList<URL>();
-		if(dir.isFile())
-		{
-			dir = ZipUtil.extract(dir);
-		}
 		try
 		{
+			if(dir.isFile())
+			{
+				dir = ZipUtil.extract(dir);
+			}
 			urls.addAll(jarUrls(new File(dir, LIB)));
 			urls.add(new File(dir, CLASSES).toURI().toURL());
 		}
 		catch(MalformedURLException e)
 		{
 			e.printStackTrace();
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
 		}
 		return urls;
 	}

@@ -13,11 +13,13 @@ public class MessageDigestUtil
 		
 	}
 	
+	@Deprecated
 	public static byte[] digestMd5(String value)
 	{
 		return digest(value.getBytes(), MD5);
 	}
 	
+	@Deprecated
 	public static byte[] digestMd5(byte[] bytes)
 	{
 		return digest(bytes, MD5);

@@ -39,7 +39,14 @@ public abstract class From extends Sql
 		this.unionType = UNION_ALL;
 		return this;
 	}
-	
+
+	public From setUnionSelects(Select...selects)
+	{
+		this.selects.array(selects);
+		this.unionType = UNION;
+		return this;
+	}
+
 	public String alias()
 	{
 		return alias != null ? alias : name;

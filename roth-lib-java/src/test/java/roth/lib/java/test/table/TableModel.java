@@ -53,12 +53,15 @@ public class TableModel implements Serializable
 	@Property(name = "responeCodeDescription", tableName = "ResponeCodeDescription", required = true)
 	protected String responeCodeDescription;
 	
+	@Property(name = "limitString", tableName = "LimitString", required = true, trimLength=10)
+	protected String limitString;
+	
 	public TableModel()
 	{
 		
 	}
 	
-	public TableModel(Time transactionTime, String accountNum, String transId, String attNum, String transactionType, Integer amount, Integer netAmount, String invNum, String details, String achReturnCode, String returnCodeDescription, String chargeBackResponeCode, String responeCodeDescription)
+	public TableModel(Time transactionTime, String accountNum, String transId, String attNum, String transactionType, Integer amount, Integer netAmount, String invNum, String details, String achReturnCode, String returnCodeDescription, String chargeBackResponeCode, String responeCodeDescription, String limitString)
 	{
 		this.transactionTime = transactionTime;
 		this.accountNum = accountNum;
@@ -73,6 +76,7 @@ public class TableModel implements Serializable
 		this.returnCodeDescription = returnCodeDescription;
 		this.chargeBackResponeCode = chargeBackResponeCode;
 		this.responeCodeDescription = responeCodeDescription;
+		this.limitString = limitString;
 	}
 	
 	public Time getTransactionTime()

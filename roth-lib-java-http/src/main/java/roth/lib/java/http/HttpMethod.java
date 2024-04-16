@@ -8,6 +8,7 @@ public enum HttpMethod
 	POST,
 	PUT,
 	DELETE,
+	PATCH,
 	;
 	
 	public static HttpMethod fromString(String value)

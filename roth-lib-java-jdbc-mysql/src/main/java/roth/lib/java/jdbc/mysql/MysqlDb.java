@@ -26,7 +26,12 @@ public class MysqlDb extends Jdbc implements MysqlDbWrapper, MysqlSqlFactory
 	{
 		super(MapperType.MYSQL, driver, url, username, password);
 	}
-	
+
+	public MysqlDb(String driver, String url, String username, String password, String testConnectionString)
+	{
+		super(MapperType.MYSQL, driver, url, username, password, testConnectionString);
+	}
+
 	public MysqlDb(String driver, String url, Properties properties)
 	{
 		super(MapperType.MYSQL, driver, url, properties);
