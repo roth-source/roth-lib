@@ -42,7 +42,7 @@ public class WebServer
 	protected String keyStorePassword = "localhost";
 	protected String keyManagerPassword = "localhost";
 	protected Server server;
-	protected SslContextFactory sslContextFactory;
+	protected SslContextFactory.Server sslContextFactory;
 	protected HttpConfiguration httpsConfig;
 	protected ServerConnector serverConnector;
 	protected WebAppContext webAppContext;
@@ -234,10 +234,17 @@ public class WebServer
 			httpsConfig.setSecureScheme("https");
 			httpsConfig.addCustomizer(new SecureRequestCustomizer());
 			httpsConfig.setSecurePort(port);
+			
+			//serverConnector = new ServerConnector(server);
+	        //connector.setPort(8090);
+	        //server.setConnectors(new Connector[] {serverConnector});
 			serverConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(httpsConfig));
+			//serverConnector = new ServerConnector(server, sslContextFactory);
+			//serverConnector = new ServerConnector(server, sslContextFactory, new HttpConnectionFactory(httpsConfig));
 			serverConnector.setPort(port);
 			webAppContext = new WebAppContext();
 			scanner = new Scanner();
+			/*
 			scanListener = new Scanner.BulkListener()
 			{
 				@Override
@@ -250,6 +257,7 @@ public class WebServer
 					}
 				}
 			};
+			*/
 			server.setConnectors(new Connector[]{serverConnector});
 			webAppContext.setWar(webAppDir.getAbsolutePath());
 			webAppContext.setContextPath(contextPath);
