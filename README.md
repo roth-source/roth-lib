@@ -24,7 +24,7 @@ The new artifacts built with JDK 11 are hosted in AWS CodeArtifact.
 To deploy the dependencies, make sure the terminal is connected to the Common Service account:
 
 ```shell
-export AWS_DEFAULT_PROFILE=apx-common-svs
+export AWS_DEFAULT_PROFILE=<CLI Profile Name>
 ```
 
 Get the CodeArtifact token:
