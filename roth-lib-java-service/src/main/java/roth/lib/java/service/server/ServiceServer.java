@@ -234,7 +234,7 @@ public class ServiceServer
 			httpsConfig.setSecureScheme("https");
 			httpsConfig.addCustomizer(new SecureRequestCustomizer());
 			httpsConfig.setSecurePort(port);
-			serverConnector = new ServerConnector(server, new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(httpsConfig));
+			serverConnector = new ServerConnector(server, new SslConnectionFactory((SslContextFactory)sslContextFactory, HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(httpsConfig));
 			serverConnector.setPort(port);
 			webAppContext = new WebAppContext();
 			scanner = new Scanner();
