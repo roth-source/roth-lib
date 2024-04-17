@@ -3,4 +3,5 @@
 Thumbs.db
 /.metadata/
 /.recommenders/
-/.idea
+.idea
+from-container
